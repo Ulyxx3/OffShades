@@ -1,51 +1,52 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.fsh
-// Step 2: + directional shadow with PCF softening
+// OffShades — gbuffers_terrain.fsh  (Step 2 fix)
 //
-// Artistic goal:
-//   - Sharp shadows for nearby blocks
-//   - Progressively softer edges with distance (via larger PCF kernel)
+// Fix: replaced sampler2DShadow (hardware comparison, unreliable in compat.
+//      mode) with a manual depth comparison against shadowtex0 raw depth.
+//
+// Fix: replaced sunPosition.y check (view-space, changes with camera)
+//      with lmCoord.y (sky light) — naturally handles day/night/underground.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Inputs from vertex shader ─────────────────────────────────────────────────
 in vec2 texCoord;
 in vec4 glColor;
 in vec2 lmCoord;
 in vec3 fragNormal;
-in vec4 shadowPos;   // clip-space position in shadow map
+in vec4 shadowPos;
 
-// ── Uniforms ──────────────────────────────────────────────────────────────────
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
-uniform sampler2DShadow shadowtex1;  // shadow map with hardware PCF support
+uniform sampler2D shadowtex0;   // raw depth shadow map (solid geometry)
 
-// Sun direction in view space (provided by Iris)
+// Sun direction in view space — used only for normal bias direction
 uniform vec3 sunPosition;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PCF (Percentage Closer Filtering)
-// Samples the shadow map multiple times in a kernel around the projected
-// position and averages the results for soft shadow edges.
+// Manual PCF shadow sampling
 //
-// kernelSize: half-size of the sample grid (1 = 3x3, 2 = 5x5…)
-//             We make it proportional to distance for near-sharp/far-soft.
+// shadowCoords : UV + reference depth, all in [0,1]
+// bias         : depth offset to prevent self-shadowing
+// radius       : kernel spread in texels (1.0 = tight, 3.0 = wide)
+//
+// Returns 1.0 = fully lit, 0.0 = fully in shadow
 // ─────────────────────────────────────────────────────────────────────────────
-float sampleShadowPCF(vec3 projCoords, float kernelRadius) {
-    float shadow  = 0.0;
-    float texelSize = 1.0 / 2048.0;  // must match shadowMapResolution
-    int   samples  = 0;
+float sampleShadowPCF(vec3 shadowCoords, float bias, float radius) {
+    float lit     = 0.0;
+    float texel   = 1.0 / 2048.0;   // must match shadowMapResolution
+    int   samples = 0;
 
-    // 5×5 kernel — quality / perf tradeoff; reduce to 3×3 if needed
     for (int x = -2; x <= 2; x++) {
         for (int y = -2; y <= 2; y++) {
-            vec2 offset = vec2(x, y) * texelSize * kernelRadius;
-            shadow += texture(shadowtex1, vec3(projCoords.xy + offset, projCoords.z));
+            vec2  offset    = vec2(float(x), float(y)) * texel * radius;
+            float storedZ   = texture(shadowtex0, shadowCoords.xy + offset).r;
+            // Lit if the stored depth (closest occluder) is further than us
+            lit += (storedZ > shadowCoords.z - bias) ? 1.0 : 0.0;
             samples++;
         }
     }
-    return shadow / float(samples);
+    return lit / float(samples);
 }
 
 /* DRAWBUFFERS:0 */
@@ -57,49 +58,58 @@ void main() {
     if (albedo.a < 0.1) discard;
     albedo *= glColor;
 
-    // ── 2. Lightmap (torch + sky ambient) ────────────────────────────────────
-    vec3 lighting = texture(lightmap, lmCoord).rgb;
+    // ── 2. Lightmap ───────────────────────────────────────────────────────────
+    vec3 lightmapColor = texture(lightmap, lmCoord).rgb;
 
-    // ── 3. Shadow factor ──────────────────────────────────────────────────────
-    float shadowFactor = 1.0;  // 1.0 = fully lit, 0.0 = fully in shadow
+    // ── 3. Shadow ─────────────────────────────────────────────────────────────
+    float shadowFactor = 1.0;  // default: fully lit
 
-    // Only compute shadows when the sun is above the horizon
-    // sunPosition.y > 0 means daytime in view space
-    if (sunPosition.y > 0.0) {
+    // skyLight: 1.0 = full outdoor daylight, 0.0 = cave/night
+    // We only apply directional shadows outdoors in daylight.
+    float skyLight = lmCoord.y;
 
-        // Project from clip space → NDC [−1,1]³ → texture space [0,1]³
-        vec3 ndc       = shadowPos.xyz / shadowPos.w;
-        vec3 projCoords = ndc * 0.5 + 0.5;
+    // Shadow is only meaningful when sky light is significant (outdoors, day)
+    // Threshold 0.8 avoids shadow artifacts in dim/night conditions
+    if (skyLight > 0.8) {
 
-        // Check that position is inside the shadow map frustum
-        if (projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
-            projCoords.y >= 0.0 && projCoords.y <= 1.0) {
+        // shadowPos is in clip space — perspective divide to NDC [-1, 1]
+        vec3 ndc        = shadowPos.xyz / shadowPos.w;
+        vec3 shadowCoords = ndc * 0.5 + 0.5;  // remap to [0, 1]
 
-            // ── Normal bias: push shadow receiver along the normal ────────────
-            // Prevents "shadow acne" (self-shadowing) on flat surfaces.
-            // Bias is larger for surfaces that are oblique to the sun.
+        // Only sample if inside the shadow frustum
+        if (all(greaterThan(shadowCoords, vec3(0.0))) &&
+            all(lessThan(shadowCoords, vec3(1.0)))) {
+
+            // Normal bias — larger bias for surfaces oblique to the sun
             vec3  sunDir   = normalize(sunPosition);
-            float cosTheta = max(dot(fragNormal, sunDir), 0.0);
-            float bias     = mix(0.002, 0.0005, cosTheta);
-            projCoords.z  -= bias;
+            float cosTheta = clamp(dot(fragNormal, sunDir), 0.0, 1.0);
+            float bias     = mix(0.0015, 0.0003, cosTheta);
 
-            // ── Distance-based PCF kernel ─────────────────────────────────────
-            // Near: kernel = 1.0 (tight = sharper), Far: kernel = 3.0 (softer)
-            float dist        = length(shadowPos.xyz);  // approx distance
-            float kernelRadius = clamp(dist * 0.03, 1.0, 3.0);
+            // Distance-adaptive PCF: tight near player, wider further away
+            float dist   = length(shadowPos.xyz);
+            float radius = clamp(dist * 0.025, 1.0, 3.5);
 
-            shadowFactor = sampleShadowPCF(projCoords, kernelRadius);
+            shadowFactor = sampleShadowPCF(shadowCoords, bias, radius);
+
+            // Fade shadow out at the edge of the shadow frustum
+            // to avoid a hard cutoff ring at 128 blocks
+            vec2  edgeDist  = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
+            float edgeFade  = smoothstep(0.0, 0.1, min(edgeDist.x, edgeDist.y));
+            shadowFactor    = mix(1.0, shadowFactor, edgeFade);
+
+            // Modulate shadow strength by sky light
+            // (weaker at dusk/dawn when skyLight is not full 1.0)
+            float shadowStrength = smoothstep(0.8, 1.0, skyLight);
+            shadowFactor = mix(1.0, shadowFactor, shadowStrength);
         }
     }
 
-    // ── 4. Combine: ambient + shadow-modulated direct light ───────────────────
-    // We keep a minimum ambient floor so shadowed areas aren't pitch black.
-    // This mimics the indirect/bounce light from the sky — vanilla-faithful feel.
-    float ambientMin = 0.35;   // 0 = pitch black shadows, 1 = no shadows at all
+    // ── 4. Combine ────────────────────────────────────────────────────────────
+    // Ambient floor prevents pitch-black shadows
+    float ambientMin = 0.35;
     float shadow     = mix(ambientMin, 1.0, shadowFactor);
 
-    albedo.rgb *= lighting * shadow;
+    albedo.rgb *= lightmapColor * shadow;
 
-    // ── 5. Output ─────────────────────────────────────────────────────────────
     fragColor = albedo;
 }

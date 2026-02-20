@@ -1,23 +1,18 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.vsh
-// Step 2: + shadow map projection
+// OffShades — gbuffers_terrain.vsh  (Step 2 fix)
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Uniforms ──────────────────────────────────────────────────────────────────
-// Shadow MVP matrix provided by Iris (sun-space transform)
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
-uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-// ── Outputs to fragment shader ────────────────────────────────────────────────
 out vec2 texCoord;
 out vec4 glColor;
 out vec2 lmCoord;
 out vec3 fragNormal;
-out vec4 shadowPos;        // Position in shadow map space (clip coords)
+out vec4 shadowPos;     // shadow clip-space position
 
 void main() {
     gl_Position = ftransform();
@@ -27,10 +22,9 @@ void main() {
     lmCoord    = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     fragNormal = normalize(gl_NormalMatrix * gl_Normal);
 
-    // ── Shadow map projection ─────────────────────────────────────────────────
-    // Transform vertex from view space → world space → shadow clip space
+    // ── Shadow space transform ────────────────────────────────────────────────
+    // view space → world/player space → shadow view → shadow clip
     vec4 viewPos  = gl_ModelViewMatrix * gl_Vertex;
     vec4 worldPos = gbufferModelViewInverse * viewPos;
-    vec4 shadowView = shadowModelView * worldPos;
-    shadowPos = shadowProjection * shadowView;
+    shadowPos     = shadowProjection * (shadowModelView * worldPos);
 }
