@@ -1,0 +1,16 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Build artifacts
+*.zip
+*.jar
+
+# Logs
+*.log
