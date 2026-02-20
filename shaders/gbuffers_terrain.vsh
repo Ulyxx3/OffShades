@@ -1,7 +1,8 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.vsh  (Step 2 fix)
+// OffShades — gbuffers_terrain.vsh  (Step 2 v4)
+// IMPORTANT: distortShadow() here MUST match the one in shadow.vsh exactly.
 // ─────────────────────────────────────────────────────────────────────────────
 
 uniform mat4 shadowModelView;
@@ -12,7 +13,14 @@ out vec2 texCoord;
 out vec4 glColor;
 out vec2 lmCoord;
 out vec3 fragNormal;
-out vec4 shadowPos;     // shadow clip-space position
+out vec4 shadowPos;
+
+// ── Same distortion as shadow.vsh ─────────────────────────────────────────────
+const float SHADOW_DISTORT = 0.15;
+vec2 distortShadow(vec2 pos) {
+    float factor = length(pos) * (1.0 - SHADOW_DISTORT) + SHADOW_DISTORT;
+    return pos / factor;
+}
 
 void main() {
     gl_Position = ftransform();
@@ -22,9 +30,12 @@ void main() {
     lmCoord    = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     fragNormal = normalize(gl_NormalMatrix * gl_Normal);
 
-    // ── Shadow space transform ────────────────────────────────────────────────
-    // view space → world/player space → shadow view → shadow clip
+    // view → world → shadow clip
     vec4 viewPos  = gl_ModelViewMatrix * gl_Vertex;
     vec4 worldPos = gbufferModelViewInverse * viewPos;
     shadowPos     = shadowProjection * (shadowModelView * worldPos);
+
+    // Apply same radial distortion as in shadow.vsh
+    // (orthographic proj → w = 1, so XY is already in NDC)
+    shadowPos.xy = distortShadow(shadowPos.xy);
 }

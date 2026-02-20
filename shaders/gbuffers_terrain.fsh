@@ -1,82 +1,52 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.fsh  (Step 2 v3 — soft shadows)
+// OffShades — gbuffers_terrain.fsh  (Step 2 v4 — distorted shadow)
 //
-// Shadow quality: Poisson Disk PCF with per-fragment disk rotation.
-// This produces smooth, organic shadow edges instead of the grid-banding
-// artifact from a regular NxN kernel.
+// PCF: fixed 12-sample Poisson disk, NO per-fragment random rotation.
+// Random rotation caused temporal noise ("shimmering") as the sun moved.
+// A fixed pattern gives stable, predictable soft edges.
 // ─────────────────────────────────────────────────────────────────────────────
 
 in vec2 texCoord;
 in vec4 glColor;
 in vec2 lmCoord;
 in vec3 fragNormal;
-in vec4 shadowPos;
+in vec4 shadowPos;  // already distorted in VSH
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D shadowtex0;
-
 uniform vec3 sunPosition;
-uniform vec2 viewSize;   // screen resolution — used for dither rotation
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Poisson Disk — 16 sample points in a unit disk, well-distributed.
-// Using a fixed set avoids gl_FragCoord dependency for the disk itself;
-// we only rotate the disk per-fragment using a cheap hash.
-// ─────────────────────────────────────────────────────────────────────────────
-const vec2 POISSON[16] = vec2[](
-    vec2(-0.94201624, -0.39906216),
-    vec2( 0.94558609, -0.76890725),
-    vec2(-0.09418410, -0.92938870),
-    vec2( 0.34495938,  0.29387760),
-    vec2(-0.91588581,  0.45771432),
-    vec2(-0.81544232, -0.87912464),
-    vec2(-0.38277543,  0.27676845),
-    vec2( 0.97484398,  0.75648379),
-    vec2( 0.44323325, -0.97511554),
-    vec2( 0.53742981, -0.47373420),
-    vec2(-0.26496911, -0.41893023),
-    vec2( 0.79197514,  0.19090188),
-    vec2(-0.24188840,  0.99706507),
-    vec2(-0.81409955,  0.91437590),
-    vec2( 0.19984126,  0.78641367),
-    vec2( 0.14383161, -0.14100790)
+// ── Fixed 12-sample Poisson disk ─────────────────────────────────────────────
+const vec2 POISSON[12] = vec2[](
+    vec2(-0.326212, -0.405805),
+    vec2(-0.840144, -0.073580),
+    vec2(-0.695914,  0.457137),
+    vec2(-0.203345,  0.620716),
+    vec2( 0.962340, -0.194983),
+    vec2( 0.473434, -0.480026),
+    vec2( 0.519456,  0.767022),
+    vec2( 0.185461, -0.893124),
+    vec2( 0.507431,  0.064425),
+    vec2( 0.896420,  0.412458),
+    vec2(-0.321940, -0.932615),
+    vec2(-0.791559, -0.597710)
 );
 
-// ── Cheap 2D rotation matrix from angle θ ────────────────────────────────────
-mat2 rotate2D(float theta) {
-    float s = sin(theta), c = cos(theta);
-    return mat2(c, -s, s, c);
-}
+// ── PCF with fixed Poisson disk ───────────────────────────────────────────────
+// spread is in shadow-map UV space (post-distortion, texel units vary)
+float sampleShadowPCF(vec3 shadowCoords, float bias, float spread) {
+    float lit   = 0.0;
+    float texel = 1.0 / 4096.0;   // must match shadowMapResolution
 
-// ── Per-fragment angle hash — avoids uniform banding ─────────────────────────
-// Maps screen pixel position to a pseudo-random angle in [0, 2π]
-float ditherAngle(vec2 screenPos) {
-    return fract(sin(dot(screenPos, vec2(12.9898, 78.233))) * 43758.5453) * 6.2832;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Poisson PCF shadow sampling
-//
-// shadowCoords : UV.xy + reference depth Z, all in [0,1]
-// bias         : depth offset to prevent self-shadowing (shadow acne)
-// spread       : radius of the Poisson disk in texture space
-//                  e.g. 0.0005 = tight/sharp, 0.003 = wide/soft
-// Returns 1.0 = fully lit, 0.0 = fully in shadow
-// ─────────────────────────────────────────────────────────────────────────────
-float sampleShadowPoisson(vec3 shadowCoords, float bias, float spread) {
-    float lit    = 0.0;
-    float angle  = ditherAngle(gl_FragCoord.xy);
-    mat2  rot    = rotate2D(angle);
-
-    for (int i = 0; i < 16; i++) {
-        vec2 offset  = rot * POISSON[i] * spread;
+    for (int i = 0; i < 12; i++) {
+        vec2  offset  = POISSON[i] * texel * spread;
         float storedZ = texture(shadowtex0, shadowCoords.xy + offset).r;
         lit += (storedZ > shadowCoords.z - bias) ? 1.0 : 0.0;
     }
-    return lit / 16.0;
+    return lit / 12.0;
 }
 
 /* DRAWBUFFERS:0 */
@@ -96,8 +66,8 @@ void main() {
     float skyLight     = lmCoord.y;
 
     if (skyLight > 0.8) {
-        vec3 ndc          = shadowPos.xyz / shadowPos.w;
-        vec3 shadowCoords = ndc * 0.5 + 0.5;
+        // shadowPos.xy already distorted, w=1 for ortho — remap to [0,1]
+        vec3 shadowCoords = shadowPos.xyz * 0.5 + 0.5;
 
         if (all(greaterThan(shadowCoords, vec3(0.0))) &&
             all(lessThan(shadowCoords, vec3(1.0)))) {
@@ -105,24 +75,24 @@ void main() {
             // Normal bias
             vec3  sunDir   = normalize(sunPosition);
             float cosTheta = clamp(dot(fragNormal, sunDir), 0.0, 1.0);
-            float bias     = mix(0.0018, 0.0004, cosTheta);
+            float bias     = mix(0.0010, 0.0002, cosTheta);
 
-            // ── Distance-adaptive Poisson spread ─────────────────────────────
-            // Near: spread 0.0004 → very tight = sharp block shadows
-            // Far:  spread 0.0025 → wider = soft natural edges
+            // Distance-adaptive spread:
+            // Near = 1.5 texels → sharp block shadows
+            // Far  = 5.0 texels → soft natural penumbra
             float dist   = length(shadowPos.xyz);
-            float spread = mix(0.0004, 0.0025, clamp(dist / 64.0, 0.0, 1.0));
+            float spread = mix(1.5, 5.0, clamp(dist / 64.0, 0.0, 1.0));
 
-            shadowFactor = sampleShadowPoisson(shadowCoords, bias, spread);
+            shadowFactor = sampleShadowPCF(shadowCoords, bias, spread);
 
-            // Edge fade — smooth disappearance at frustum bounds
+            // Frustum edge fade
             vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
             float edgeFade = smoothstep(0.0, 0.1, min(edgeDist.x, edgeDist.y));
             shadowFactor   = mix(1.0, shadowFactor, edgeFade);
 
             // Dusk/dawn fade
-            float shadowStrength = smoothstep(0.8, 1.0, skyLight);
-            shadowFactor = mix(1.0, shadowFactor, shadowStrength);
+            float strength = smoothstep(0.8, 1.0, skyLight);
+            shadowFactor   = mix(1.0, shadowFactor, strength);
         }
     }
 
