@@ -2,31 +2,35 @@
 
 // ─────────────────────────────────────────────────────────────────────────────
 // OffShades — gbuffers_terrain.vsh
-// Vertex shader for solid terrain blocks.
-//
-// Goal (Step 1): Pass-through — transform geometry, forward UV + color to FSH.
-// No effects yet, just enough to make the world appear correctly.
+// Step 2: + shadow map projection
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── Uniforms ──────────────────────────────────────────────────────────────────
+// Shadow MVP matrix provided by Iris (sun-space transform)
+uniform mat4 shadowModelView;
+uniform mat4 shadowProjection;
+uniform mat4 gbufferModelView;
+uniform mat4 gbufferModelViewInverse;
+
 // ── Outputs to fragment shader ────────────────────────────────────────────────
-out vec2 texCoord;       // Texture UV from the atlas
-out vec4 glColor;        // Tint color (biome color, shading, etc.)
-out vec2 lmCoord;        // Lightmap coordinates (sky light + block light)
-out vec3 fragNormal;     // World-space normal (for future lighting)
+out vec2 texCoord;
+out vec4 glColor;
+out vec2 lmCoord;
+out vec3 fragNormal;
+out vec4 shadowPos;        // Position in shadow map space (clip coords)
 
 void main() {
-    // Standard MVP transform — identical to vanilla rendering
     gl_Position = ftransform();
 
-    // Forward texture coordinates
-    texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-
-    // Forward vertex color (biome tinting, brightness vertex data)
-    glColor = gl_Color;
-
-    // Lightmap UVs — normalize to [0,1] range for sampler2D lookup
-    lmCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-
-    // Forward normals in view space (will be used in Step 2 for shadow bias)
+    texCoord   = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    glColor    = gl_Color;
+    lmCoord    = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     fragNormal = normalize(gl_NormalMatrix * gl_Normal);
+
+    // ── Shadow map projection ─────────────────────────────────────────────────
+    // Transform vertex from view space → world space → shadow clip space
+    vec4 viewPos  = gl_ModelViewMatrix * gl_Vertex;
+    vec4 worldPos = gbufferModelViewInverse * viewPos;
+    vec4 shadowView = shadowModelView * worldPos;
+    shadowPos = shadowProjection * shadowView;
 }
