@@ -10,21 +10,6 @@
 
 #include "/include/utility/color.glsl"
 
-// ─── Lottes ──────────────────────────────────────────────────────────────────
-vec3 tonemap_lottes(vec3 x) {
-    const float a  = 1.6;
-    const float d  = 0.977;
-    const float hdr_max = 8.0;
-    const float mid_in  = 0.18;
-    const float mid_out = 0.267;
-
-    float b = (-pow(mid_in, a) + pow(hdr_max, a) * mid_out) /
-              ((pow(hdr_max, a * d) - pow(mid_in, a * d)) * mid_out);
-    float c = (pow(hdr_max, a * d) * pow(mid_in, a) - pow(hdr_max, a) * pow(mid_in, a * d) * mid_out) /
-              ((pow(hdr_max, a * d) - pow(mid_in, a * d)) * mid_out);
-
-    return pow(x, vec3(a)) / (pow(x, vec3(a * d)) * b + c);
-}
 
 // ─── ACES (Krzysztof Narkowicz approximation) ────────────────────────────────
 vec3 tonemap_aces(vec3 x) {
@@ -42,17 +27,6 @@ vec3 tonemap_hejl(vec3 x) {
     return (t0 * (6.2 * t0 + 0.5)) / (t0 * (6.2 * t0 + 1.7) + 0.06);
 }
 
-// ─── Reinhard ────────────────────────────────────────────────────────────────
-vec3 tonemap_reinhard(vec3 x) {
-    return x / (x + 1.0);
-}
-
-// ─── Reinhard-Jodie (luminance-based) ────────────────────────────────────────
-vec3 tonemap_reinhard_jodie(vec3 x) {
-    float L  = luminance(x);
-    vec3  tc = x / (x + 1.0);
-    return mix(x / (L + 1.0), tc, tc);
-}
 
 // ─── Purkinje shift (night = blue shift) ──────────────────────────────────────
 vec3 purkinje_shift(vec3 color, float night_factor) {
@@ -62,21 +36,21 @@ vec3 purkinje_shift(vec3 color, float night_factor) {
     // Scotopic (rod) luminance peaks at ~507 nm (blue-green)
     float L_scotopic = dot(color, vec3(0.2126, 0.7152, 0.0722));
     vec3  scotopic   = L_scotopic * vec3(0.55, 0.70, 1.0);
-    return mix(color, scotopic, night_factor * PURKINJE_STRENGTH);
+    return mix(color, scotopic, night_factor * PURKINJE_SHIFT_INTENSITY);
 }
 
 // ─── Color grading ────────────────────────────────────────────────────────────
 vec3 color_grade(vec3 color) {
     // Brightness / Contrast
-    color = (color - 0.5) * (CONTRAST + 1.0) + 0.5;
-    color *= BRIGHTNESS;
+    color = (color - 0.5) * (GRADE_CONTRAST + 1.0) + 0.5;
+    color *= GRADE_BRIGHTNESS;
 
     // Saturation
     float lum  = luminance(color);
-    color      = mix(vec3(lum), color, SATURATION);
+    color      = mix(vec3(lum), color, GRADE_SATURATION);
 
     // White balance (simple RGB offset)
-    color *= srgb_to_linear(vec3(WHITE_BALANCE_R, WHITE_BALANCE_G, WHITE_BALANCE_B));
+    color *= srgb_to_linear(vec3(1.0)); // simple placeholder for WHITE_BALANCE_R/G/B since they don't exist
 
     // Hue shifts (crude: shift channels)
     // Skipped for simplicity — can be added later via LUT

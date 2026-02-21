@@ -71,7 +71,7 @@ void main() {
     }
 
     // Underwater fog
-    if (isEyeInWater == 1) {
+    if (isEyeInWater) {
         scene.rgb = apply_underwater(
             scene.rgb,
             view_pos,

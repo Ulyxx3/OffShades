@@ -132,7 +132,7 @@ LightingResult compute_lighting(
 
     // ── Block light ──
     float bl_strength = blocklight * blocklight;
-    color += albedo * blocklight_color() * bl_strength * BLOCKLIGHT_BRIGHTNESS;
+    color += albedo * blocklight_color() * bl_strength * BLOCKLIGHT_I;
 
     // ── Emissive ──
     color += albedo * emission * EMISSION_STRENGTH;

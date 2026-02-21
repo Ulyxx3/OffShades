@@ -25,6 +25,15 @@ vec3 fxaa(sampler2D src, vec2 uv, vec2 pixel_size) {
     float l_max  = max(max(luma[0], luma[1]), max(luma[2], luma[3]));
     float contrast = l_max - l_min;
 
+    #ifndef FXAA_EDGE_THRESHOLD_MIN
+    #define FXAA_EDGE_THRESHOLD_MIN 0.0312
+    #endif
+    #ifndef FXAA_EDGE_THRESHOLD
+    #define FXAA_EDGE_THRESHOLD 0.125
+    #endif
+    #ifndef FXAA_SUBPIXEL_QUALITY
+    #define FXAA_SUBPIXEL_QUALITY 0.75
+    #endif
     if (contrast < max(FXAA_EDGE_THRESHOLD_MIN, l_max * FXAA_EDGE_THRESHOLD)) return c[4];
 
     // Blend fomula
@@ -57,7 +66,7 @@ vec3 cas_sharpen(sampler2D src, vec2 uv, vec2 ps) {
     vec3 mn  = min(min(a, b), min(c, d));
     vec3 mx  = max(max(a, b), max(c, d));
     vec3 w   = clamp(-1.0 / sqrt(max(vec3(0.0125), max(mn / mx, (1.0 - mx) / (1.0 - mn)))), -0.125, 0.0);
-    vec3 sharpen = (e + (e - (a + b + c + d) * w) * CAS_SHARPNESS * rcp(1.0 + 4.0 * abs(w)));
+    vec3 sharpen = (e + (e - (a + b + c + d) * w) * CAS_INTENSITY * rcp(1.0 + 4.0 * abs(w)));
     return max(vec3(0.0), sharpen);
 }
 #endif
@@ -76,12 +85,18 @@ void main() {
     // Vignette
 #ifdef VIGNETTE
     vec2  vc = v_uv * 2.0 - 1.0;
-    float vg = 1.0 - VIGNETTE_STRENGTH * pow(dot(vc * VIGNETTE_FALLOFF, vc), 1.5);
+    #ifndef VIGNETTE_FALLOFF
+    #define VIGNETTE_FALLOFF 1.0
+    #endif
+    float vg = 1.0 - VIGNETTE_INTENSITY * pow(dot(vc * VIGNETTE_FALLOFF, vc), 1.5);
     color   *= vg;
 #endif
 
     // Film grain
 #ifdef FILM_GRAIN
+    #ifndef FILM_GRAIN_STRENGTH
+    #define FILM_GRAIN_STRENGTH 0.05
+    #endif
     float grain = fract(sin(dot(gl_FragCoord.xy + float(frameCounter) * 17.4, vec2(12.9898, 78.233))) * 43758.5453);
     color      += (grain - 0.5) * FILM_GRAIN_STRENGTH;
 #endif

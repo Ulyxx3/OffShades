@@ -10,9 +10,8 @@
 #include "/include/fog/fog.glsl"
 
 varying vec2 v_uv;
-/* DRAWBUFFERS:07 */
+/* DRAWBUFFERS:0 */
 layout(location = 0) out vec4 scene_out;
-layout(location = 1) out vec4 vl_out; // colortex7
 
 void main() {
     vec3 scene = texture(colortex0, v_uv).rgb;
@@ -44,5 +43,4 @@ void main() {
     );
 
     scene_out = vec4(scene, 1.0);
-    vl_out    = vec4(0.0); // placeholder for future half-res VL buffer
 }

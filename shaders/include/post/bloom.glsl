@@ -49,7 +49,7 @@ vec3 kawase_upsample(sampler2D src, vec2 uv, vec2 texel_size) {
 // bloom_color : the result of the upsample chain (sampled from colortex11)
 // scene_color : the scene HDR color before tonemap
 vec3 apply_bloom(vec3 scene_color, vec3 bloom_color) {
-    return scene_color + bloom_color * BLOOM_STRENGTH;
+    return scene_color + bloom_color * BLOOM_INTENSITY;
 }
 
 #endif // BLOOM_INCLUDED

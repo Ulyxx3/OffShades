@@ -8,6 +8,11 @@
 #include "/include/global.glsl"
 #include "/include/surface/waving.glsl"
 
+float get_distortion_factor(vec2 shadow_clip_pos) {
+    float q = sqrt(sqrt(pow(shadow_clip_pos.x, 4.0) + pow(shadow_clip_pos.y, 4.0)));
+    return q * SHADOW_DISTORTION + (1.0 - SHADOW_DISTORTION);
+}
+
 attribute vec4 mc_Entity;
 attribute vec4 mc_midTexCoord;
 

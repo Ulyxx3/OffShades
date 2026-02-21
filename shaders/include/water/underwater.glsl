@@ -74,9 +74,9 @@ vec3 apply_underwater(
     // Distance-based absorption
     vec3  transmit = underwater_transmittance(view_dist * WATER_DENSITY);
 
-    // Water scatter color: blue-green ambient
-    vec3  scatter_color = srgb_to_linear(vec3(WATER_SCATTER_R, WATER_SCATTER_G, WATER_SCATTER_B));
-    vec3  scatter       = scatter_color * (1.0 - transmit) * skylight;
+    // Water scatter color: blue-green ambient (approximated based on scattering coefficient)
+    vec3  scatter_color = vec3(0.1, 0.4, 0.5) * WATER_SCATTERING_UNDERWATER;
+    vec3  scatter       = scatter_color * (1.0 - vec3(transmit)) * skylight;
 
     // Caustics
     float caus = 0.0;

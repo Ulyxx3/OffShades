@@ -402,6 +402,7 @@ const int   noiseTextureResolution    = 512;
   #define BIOME_WATER_COLOR
 
   #define WATER_WAVES
+  #define WATER_ALPHA             0.65 // [0.25 0.50 0.65 0.75 0.85 1.00]
   #define WATER_WAVE_ITERATIONS   3    // [1 2 3 4 5 6 7 8]
   #define WATER_WAVE_STRENGTH     1.00 // [0.25 0.50 0.75 1.00 1.25 1.50 2.00]
   #define WATER_WAVE_FREQUENCY    1.00 // [0.25 0.50 0.75 1.00 1.25 1.50 2.00]
@@ -422,6 +423,7 @@ const int   noiseTextureResolution    = 512;
   #define WATER_ABSORPTION_G_UNDERWATER 0.08 // [0.00 0.03 0.05 0.08 0.12 0.20]
   #define WATER_ABSORPTION_B_UNDERWATER 0.04 // [0.00 0.02 0.04 0.06 0.10]
   #define WATER_SCATTERING_UNDERWATER   0.03 // [0.00 0.01 0.02 0.03 0.05 0.10]
+  #define WATER_DENSITY                 0.02 // [0.00 0.01 0.02 0.03 0.05 0.10 0.20]
 
 // ============================================================
 //   Post-Processing
@@ -429,6 +431,7 @@ const int   noiseTextureResolution    = 512;
 
   #define BLOOM
   #define BLOOM_INTENSITY 1.00 // [0.00 0.25 0.50 0.75 1.00 1.25 1.50 2.00]
+  #define BLOOM_THRESHOLD 1.00 // [0.50 0.75 1.00 1.25 1.50 2.00 3.00 5.00]
   #define EXPOSURE 1.0 // [0.5 0.7 0.8 0.9 1.0 1.1 1.2 1.5 2.0]
   #define TONEMAP_MODE TONEMAP_ACES // [TONEMAP_ACES TONEMAP_REINHARD TONEMAP_UNCHARTED]
 

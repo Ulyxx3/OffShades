@@ -16,13 +16,13 @@ varying vec4  v_color;
 varying vec3  v_normal;
 varying vec3  v_world_pos;
 
-uniform float entityColor; // damage flash red tint (0-1)
+uniform vec4 entityColor; // damage flash tint
 
 void main() {
     v_uv      = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     v_lm      = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     // Damage flash: blend with red
-    v_color   = mix(gl_Color, vec4(1.0, 0.0, 0.0, 1.0), entityColor);
+    v_color   = mix(gl_Color, vec4(entityColor.rgb, gl_Color.a), entityColor.a);
 
     vec4 world_pos_h = gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex);
     v_world_pos      = world_pos_h.xyz;

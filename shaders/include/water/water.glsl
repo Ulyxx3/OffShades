@@ -101,7 +101,7 @@ vec3 shade_water(
     vec3  sun_dir_v,
     vec3  sun_color,
     vec3  sky_irr,
-    vec2  screen_uv,
+    vec2  screen_coord,
     float skylight
 ) {
     vec3 V       = normalize(-view_pos);
@@ -116,7 +116,7 @@ vec3 shade_water(
     vec3 reflect_dir = reflect(-V, N);
     vec3 ssr_color   = vec3(0.0);
 #ifdef WATER_SSR
-    ssr_color = ssr(screen_uv, view_pos, reflect_dir, WATER_ROUGHNESS);
+    ssr_color = ssr(screen_coord, view_pos, reflect_dir, WATER_ROUGHNESS);
 #endif
 
     // Sky contribution as fallback when SSR misses

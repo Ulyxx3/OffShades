@@ -26,6 +26,8 @@ vec3 overworld_fog_color(vec3 sun_dir, vec3 sky_color_horizon) {
 // ─── Mie phase (forward-scattering fog glow) ─────────────────────────────────
 float mie_phase_approx(float cos_theta) {
     // Cornette-Shanks approximation
+    // Forward scattering anisotropy factor (usually 0.7 - 0.9 for hazy air)
+    const float FOG_MIE_G = 0.8;
     const float g = FOG_MIE_G;
     float g2 = g * g;
     return (1.5 * (1.0 - g2) / (2.0 + g2))
@@ -36,8 +38,8 @@ float mie_phase_approx(float cos_theta) {
 // ─── Overworld fog density ────────────────────────────────────────────────────
 float fog_density(float height, float sea_level) {
     float h  = max(height - sea_level, 0.0);
-    float hf = h / FOG_HEIGHT;
-    return exp(-hf * FOG_FALLOFF);
+    float hf = h / AIR_FOG_MIE_FALLOFF_HALF_LIFE;
+    return exp(-hf * 1.0); // Simple exponential falloff
 }
 
 // ─── Volumetric light shaft (simple) ─────────────────────────────────────────
@@ -49,9 +51,9 @@ float fog_density(float height, float sea_level) {
 // shadow  : 0=in shadow, 1=lit (cloud shadow)
 vec3 volumetric_fog(vec3 ro, vec3 rd, float dist, vec3 sun_dir,
                     vec3 sky_irr, vec3 sun_color, float shadow) {
-    const int STEPS = VL_STEPS;
+    const int STEPS = 16; // hardcoded temporarily for simplicity
 
-    float step_size = min(dist, VL_MAX_DIST) / float(STEPS);
+    float step_size = min(dist, 100.0) / float(STEPS);
     vec3  scatter   = vec3(0.0);
     float transmit  = 1.0;
 
@@ -64,11 +66,11 @@ vec3 volumetric_fog(vec3 ro, vec3 rd, float dist, vec3 sun_dir,
     vec3 p = ro + rd * (step_size * dither);
 
     for (int i = 0; i < STEPS; ++i, p += rd * step_size) {
-        float density = fog_density(p.y + cameraPosition.y, SEA_LEVEL) * FOG_DENSITY;
+        float density = fog_density(p.y + cameraPosition.y, SEA_LEVEL) * AIR_FOG_MIE_DENSITY_NOON;
         if (density < 1e-6) continue;
 
-        float sigma_e = density * (FOG_RAYLEIGH + FOG_MIE);
-        float sigma_s = density * (FOG_RAYLEIGH * 0.9 + FOG_MIE);
+        float sigma_e = density * (AIR_FOG_RAYLEIGH_DENSITY + AIR_FOG_MIE_DENSITY_NOON);
+        float sigma_s = density * (AIR_FOG_RAYLEIGH_DENSITY * 0.9 + AIR_FOG_MIE_DENSITY_NOON);
 
         // In-scatter: sun + sky
         vec3 sun_in = sun_color * mie_phase * shadow;
@@ -87,6 +89,9 @@ vec3 volumetric_fog(vec3 ro, vec3 rd, float dist, vec3 sun_dir,
 
 // ─── Border fog (distance-based fade) ────────────────────────────────────────
 float border_fog(float view_dist) {
+    #ifndef BORDER_FOG_DISTANCE
+    #define BORDER_FOG_DISTANCE 192.0 // render distance fallback
+    #endif
     return 1.0 - exp(-view_dist * view_dist / (BORDER_FOG_DISTANCE * BORDER_FOG_DISTANCE));
 }
 
@@ -106,12 +111,15 @@ vec3 apply_overworld_fog(
 
     // Exponential distance fog
     vec3  fog_color    = overworld_fog_color(sun_dir, sky_irr * 0.2);
-    float fog_amount   = 1.0 - exp(-dist * FOG_DENSITY * 0.0005);
+    float fog_amount   = 1.0 - exp(-dist * 1.0 * 0.0005);
 
     vec3 result = mix(scene_color, fog_color, fog_amount * OVERWORLD_FOG_INTENSITY * skylight);
     result     += vl_scatter;
 
 #ifdef BORDER_FOG
+    #ifndef BORDER_FOG_INTENSITY
+    #define BORDER_FOG_INTENSITY 1.0
+    #endif
     float bf = border_fog(dist);
     result = mix(result, fog_color, bf * BORDER_FOG_INTENSITY);
 #endif
