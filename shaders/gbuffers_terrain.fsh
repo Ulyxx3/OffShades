@@ -13,6 +13,8 @@ in vec4 glColor;
 in vec2 lmCoord;
 in vec3 fragNormal;   // world-space
 in vec4 shadowPos;    // distorted shadow clip coords
+in vec3 currentPosition;
+in vec3 previousPosition;
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
@@ -21,8 +23,9 @@ uniform sampler2D shadowtex0;
 uniform vec3 shadowLightPosition;
 uniform mat4 gbufferModelViewInverse;
 
-/* DRAWBUFFERS:0 */
-out vec4 fragColor;
+/* DRAWBUFFERS:03 */
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 velocityOut;
 
 // ── Sky-color ambient (matches gbuffers_skybasic palette) ─────────────────────
 vec3 skyAmbientColor(float sunHeight) {
@@ -65,9 +68,9 @@ void main() {
     vec3 ambientColor = skyAmbientColor(sunHeight);
     vec3 directColor  = sunColor(sunHeight);
 
-    // ── 4. Shadow — exact single sample ───────────────────────────────────────
-    // 8192px shadow map → 1 texel = 0.0078 blocks even at 64 block distance.
-    // Sub-pixel precision: no PCF or blurring required.
+    // ── 4. Shadow — Soft noise for TAA accumulation ───────────────────────────
+    // TAA smooths out noise over time. We introduce a tightly rotated 4-sample
+    // PCF disk based on screen position and frame counter.
     float shadowFactor = 1.0;
     bool  isOutdoor    = (lmCoord.y > 0.5);
 
@@ -82,10 +85,33 @@ void main() {
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                // Single exact lookup — normal offset in VSH prevents acne
-                const float BIAS  = 0.0002;
-                float storedZ     = texture(shadowtex0, shadowCoords.xy).r;
-                float inLight     = (storedZ > shadowCoords.z - BIAS) ? 1.0 : 0.0;
+                // ── TAA Dithered PCF ────────────────────────────────────────────────
+                // Hash function for random rotation per-pixel, shifting every frame
+                vec2  fragCoord = gl_FragCoord.xy;
+                float dither    = fract(sin(dot(fragCoord + float(frameCounter)*17.13, vec2(12.9898, 78.233))) * 43758.5453);
+                float angle     = dither * 6.2831853;
+                float s         = sin(angle);
+                float c         = cos(angle);
+                mat2  rot       = mat2(c, -s, s, c);
+
+                const vec2 POISSON_4[4] = vec2[](
+                    vec2(-0.942, -0.316),
+                    vec2( 0.316, -0.942),
+                    vec2( 0.942,  0.316),
+                    vec2(-0.316,  0.942)
+                );
+
+                const float BIAS     = 0.0002;
+                float shadowSpread   = 1.5 / 8192.0; // Very tight spread (1.5 texels)
+                float accumulatedVis = 0.0;
+
+                for (int i = 0; i < 4; i++) {
+                    vec2 off = rot * POISSON_4[i] * shadowSpread;
+                    float sz = texture(shadowtex0, shadowCoords.xy + off).r;
+                    accumulatedVis += (sz > shadowCoords.z - BIAS) ? 0.25 : 0.0;
+                }
+                
+                float inLight = accumulatedVis;
 
                 // Smooth fade at shadow frustum edge
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
@@ -111,4 +137,13 @@ void main() {
 
     albedo.rgb *= lightmapColor * lightLevel * lightTint;
     fragColor = albedo;
+
+    // ── 6. Velocity Output ────────────────────────────────────────────────────
+    // Calculate motion vector in screen space [0, 1] range
+    vec2 currentUV  = currentPosition.xy * 0.5 + 0.5;
+    vec2 previousUV = previousPosition.xy * 0.5 + 0.5;
+    vec2 velocity   = currentUV - previousUV;
+    
+    // colortex3 stores: R=velX, G=velY, B=0, A=1
+    velocityOut     = vec4(velocity, 0.0, 1.0);
 }

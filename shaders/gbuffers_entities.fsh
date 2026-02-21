@@ -8,12 +8,15 @@ in vec2 texCoord;
 in vec4 glColor;
 in vec2 lmCoord;
 in vec3 fragNormal;
+in vec3 currentPosition;
+in vec3 previousPosition;
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 
-/* DRAWBUFFERS:0 */
-out vec4 fragColor;
+/* DRAWBUFFERS:03 */
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 velocityOut;
 
 void main() {
     vec4 albedo = texture(gtexture, texCoord);
@@ -25,4 +28,11 @@ void main() {
     albedo.rgb *= lighting;
 
     fragColor = albedo;
+
+    // ── Velocity Output ───────────────────────────────────────────────────────
+    vec2 currentUV  = currentPosition.xy * 0.5 + 0.5;
+    vec2 previousUV = previousPosition.xy * 0.5 + 0.5;
+    vec2 velocity   = currentUV - previousUV;
+    
+    velocityOut     = vec4(velocity, 0.0, 1.0);
 }

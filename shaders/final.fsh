@@ -2,28 +2,28 @@
 
 // ─────────────────────────────────────────────────────────────────────────────
 // OffShades — final.fsh
-// Last shader pass — outputs the final pixel color to screen.
-//
-// Step 1: Pass-through.
-//         Future: tonemapping (ACES/Reinhard), gamma correction, vignette…
+// Reads the final TAA output buffer and applies tonemapping before screen.
 // ─────────────────────────────────────────────────────────────────────────────
 
 in vec2 texCoord;
 
-uniform sampler2D colortex0;
+uniform sampler2D colortex1; // TAA Ping
+uniform sampler2D colortex2; // TAA Pong
+uniform int frameCounter;
 
-// Note: 'final' pass writes directly to the screen — no DRAWBUFFERS needed.
+/* DRAWBUFFERS:0 */
 out vec4 fragColor;
 
 void main() {
-    vec4 color = texture(colortex0, texCoord);
+    // Read from the buffer that was WRITTEN TO in the composite pass.
+    // In composite.fsh: writeToPing (colortex1) is true when frameCounter % 2 == 0
+    vec3 color;
+    if (frameCounter % 2 == 0) {
+        color = texture(colortex1, texCoord).rgb;
+    } else {
+        color = texture(colortex2, texCoord).rgb;
+    }
 
-    // ── Tonemapping stub (disabled in Step 1) ────────────────────────────────
-    // ACES filmic tonemapping will go here:
-    //   color.rgb = aces(color.rgb);
-    //
-    // Gamma correction (sRGB output):
-    //   color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
-
-    fragColor = color;
+    // Passthrough (Minecraft already expects sRGB and does its own minor grading)
+    fragColor = vec4(color, 1.0);
 }
