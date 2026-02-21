@@ -13,8 +13,8 @@ in vec4 glColor;
 in vec2 lmCoord;
 in vec3 fragNormal;   // world-space
 in vec4 shadowPos;    // distorted shadow clip coords
-in vec3 currentPosition;
-in vec3 previousPosition;
+in vec4 currentPosition;
+in vec4 previousPosition;
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
@@ -140,10 +140,13 @@ void main() {
     fragColor = albedo;
 
     // ── 6. Velocity Output ────────────────────────────────────────────────────
-    // Calculate motion vector in screen space [0, 1] range
-    vec2 currentUV  = currentPosition.xy * 0.5 + 0.5;
-    vec2 previousUV = previousPosition.xy * 0.5 + 0.5;
-    vec2 velocity   = currentUV - previousUV;
+    // Perspective divide must happen per-pixel for correct interpolation
+    vec2 currentNDC  = currentPosition.xy / currentPosition.w;
+    vec2 previousNDC = previousPosition.xy / previousPosition.w;
+    
+    vec2 currentUV   = currentNDC * 0.5 + 0.5;
+    vec2 previousUV  = previousNDC * 0.5 + 0.5;
+    vec2 velocity    = currentUV - previousUV;
     
     // colortex3 stores: R=velX, G=velY, B=0, A=1
     velocityOut     = vec4(velocity, 0.0, 1.0);

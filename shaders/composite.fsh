@@ -25,6 +25,17 @@ uniform sampler2D colortex2; // History Pong
 uniform int  frameCounter;
 uniform vec2 texelSize; // 1.0 / vec2(viewWidth, viewHeight)
 
+vec2 getJitter(int frame) {
+    vec2 halton[8] = vec2[](
+        vec2( 0.125, -0.375), vec2(-0.375,  0.125),
+        vec2( 0.375,  0.375), vec2(-0.125, -0.125),
+        vec2( 0.250, -0.125), vec2(-0.250,  0.375),
+        vec2( 0.000, -0.500), vec2(-0.500,  0.000)
+    );
+    int idx = frame % 8;
+    return halton[idx] * texelSize * 2.0; // Same scale as gbuffers
+}
+
 /* DRAWBUFFERS:12 */
 // We write to colortex1 OR colortex2 depending on the frame parity.
 // Iris automatically handles reading the *other* one in the next pass if requested.
@@ -52,17 +63,21 @@ vec3 ycocgToRgb(vec3 k) {
 }
 
 void main() {
-    // 1. Current frame color
-    vec3 currentColor = texture(colortex0, texCoord).rgb;
+    // 0. Un-jitter current coordinates
+    vec2 jitter     = getJitter(frameCounter);
+    vec2 unjittered = texCoord - jitter * 0.5; // NDC to UV scale
+
+    // 1. Current frame color (using unjittered coords to avoid blur)
+    vec3 currentColor = texture(colortex0, unjittered).rgb;
     
     // 2. Velocity
-    vec2 velocity = texture(colortex3, texCoord).xy;
+    vec2 velocity = texture(colortex3, unjittered).xy;
     
     // If velocity is exactly (0,0), it might be sky or unwritten background.
     // For now, we assume velocity is computed everywhere geometry exists.
     
-    // 3. Reprojection coordinates
-    vec2 prevCoord = texCoord - velocity;
+    // 3. Reprojection coordinates (back to previous unjittered frame)
+    vec2 prevCoord = unjittered - velocity;
     
     // 4. Read History
     // frameCounter % 2 == 0: Read from Pong (2), Write to Ping (1)
@@ -88,7 +103,7 @@ void main() {
     
     for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
-            vec3 neighbor = texture(colortex0, texCoord + vec2(x, y) * texelSize).rgb;
+            vec3 neighbor = texture(colortex0, unjittered + vec2(x, y) * texelSize).rgb;
             vec3 ycocg    = rgbToYcocg(neighbor);
             minColor      = min(minColor, ycocg);
             maxColor      = max(maxColor, ycocg);

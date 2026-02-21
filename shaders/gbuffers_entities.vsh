@@ -13,8 +13,8 @@ out vec2 texCoord;
 out vec4 glColor;
 out vec2 lmCoord;
 out vec3 fragNormal;
-out vec3 currentPosition;
-out vec3 previousPosition;
+out vec4 currentPosition;
+out vec4 previousPosition;
 
 uniform int   frameCounter;
 uniform float viewWidth;
@@ -40,14 +40,14 @@ void main() {
 
     // Current screen position (un-jittered for velocity)
     vec4 currentProj = gl_ProjectionMatrix * viewPos;
-    currentPosition  = currentProj.xyz / currentProj.w;
+    currentPosition  = currentProj;
 
     // Previous screen position
     vec4 prevWorldPos = worldPos;
     prevWorldPos.xyz -= previousCameraPosition; // Relative to previous camera
     vec4 prevViewPos  = gbufferPreviousModelView * prevWorldPos;
     vec4 prevProj     = gbufferPreviousProjection * prevViewPos;
-    previousPosition  = prevProj.xyz / prevProj.w;
+    previousPosition  = prevProj;
 
     // ── Apply Jitter ──────────────────────────────────────────────────────────
     vec2 jitter = getJitter(frameCounter);
