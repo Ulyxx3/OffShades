@@ -1,18 +1,4 @@
-#version 330 compatibility
+﻿#version 330 compatibility
 
-// OffShades — gbuffers_weather.fsh
-// Rain & snow particles
+#include "/program/gbuffers_weather.fsh"
 
-in vec2 texCoord;
-in vec4 glColor;
-
-uniform sampler2D gtexture;
-
-/* DRAWBUFFERS:0 */
-out vec4 fragColor;
-
-void main() {
-    vec4 albedo = texture(gtexture, texCoord);
-    albedo *= glColor;
-    fragColor = albedo;
-}

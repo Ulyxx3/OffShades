@@ -1,13 +1,4 @@
-#version 330 compatibility
+﻿#version 330 compatibility
 
-// ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_basic.vsh
-// Vertex shader for basic geometry: lines, hit box outlines, particles…
-// ─────────────────────────────────────────────────────────────────────────────
+#include "/program/gbuffers_basic.vsh"
 
-out vec4 glColor;
-
-void main() {
-    gl_Position = ftransform();
-    glColor     = gl_Color;
-}

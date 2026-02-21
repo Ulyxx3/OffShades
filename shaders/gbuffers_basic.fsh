@@ -1,15 +1,4 @@
-#version 330 compatibility
+﻿#version 330 compatibility
 
-// ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_basic.fsh
-// Fragment shader for basic geometry.
-// ─────────────────────────────────────────────────────────────────────────────
+#include "/program/gbuffers_basic.fsh"
 
-in vec4 glColor;
-
-/* DRAWBUFFERS:0 */
-out vec4 fragColor;
-
-void main() {
-    fragColor = glColor;
-}
