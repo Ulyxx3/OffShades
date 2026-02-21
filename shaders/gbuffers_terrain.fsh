@@ -87,25 +87,30 @@ void main() {
                 float dist         = length(shadowPos.xyz);
                 float adaptiveBias = mix(0.0001, 0.0008, clamp(dist / 48.0, 0.0, 1.0));
 
-                // ── Angle-adaptive PCF ───────────────────────────────────────
-                // Direct faces (cosTheta ≈ 1): spread=0 → hard crisp shadows
-                // Grazing faces (cosTheta ≈ 0): spread=3 → blurs aliasing stripes
-                // shadows on near-parallel surfaces look like stripes because one
-                // shadow texel spans many screen pixels at a grazing angle.
-                float texel      = 1.0 / 4096.0;
-                float oblique    = 1.0 - clamp(cosTheta * 5.0, 0.0, 1.0);
-                float spread     = mix(0.0, 3.0, oblique);
+                // ── Angle-adaptive Poisson PCF (8 samples) ──────────────────
+                // Direct (cosTheta~1): spread=0 → hard, crisp block shadows
+                // Oblique (cosTheta~0): spread=6 → blurs aliasing stripes
+                float texel   = 1.0 / 4096.0;
+                float oblique = 1.0 - clamp(cosTheta * 5.0, 0.0, 1.0);
+                float spread  = mix(0.0, 6.0, oblique);
+
+                // 8-point Poisson disk for better coverage than quad
+                const vec2 POISSON8[8] = vec2[](
+                    vec2(-0.7071,  0.0000),
+                    vec2( 0.7071,  0.0000),
+                    vec2( 0.0000, -0.7071),
+                    vec2( 0.0000,  0.7071),
+                    vec2(-0.5000, -0.5000),
+                    vec2( 0.5000, -0.5000),
+                    vec2(-0.5000,  0.5000),
+                    vec2( 0.5000,  0.5000)
+                );
 
                 float hardShadow = 0.0;
-                // 4 rotated-quad samples (fast, uniform coverage)
-                const vec2 QUAD[4] = vec2[](
-                    vec2(-0.5, -0.5), vec2( 0.5, -0.5),
-                    vec2(-0.5,  0.5), vec2( 0.5,  0.5)
-                );
-                for (int i = 0; i < 4; i++) {
-                    vec2  off = QUAD[i] * texel * spread;
+                for (int i = 0; i < 8; i++) {
+                    vec2  off = POISSON8[i] * texel * spread;
                     float sz  = texture(shadowtex0, shadowCoords.xy + off).r;
-                    hardShadow += (sz > shadowCoords.z - adaptiveBias) ? 0.25 : 0.0;
+                    hardShadow += (sz > shadowCoords.z - adaptiveBias) ? 0.125 : 0.0;
                 }
 
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
