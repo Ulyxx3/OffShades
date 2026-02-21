@@ -1,0 +1,81 @@
+# OffShades Shader Pack — Task Checklist
+
+## Phase 1: Foundation & Architecture
+- [ ] Create `shaders/` directory structure (program/, include/, world-1/, world0/, world1/, image/, lang/)
+- [ ] Write [shaders/shaders.properties](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/photon_v1.2a/shaders/shaders.properties) with full GUI menu layout + buffer config
+- [ ] Write [shaders/settings.glsl](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/photon_v1.2a/shaders/settings.glsl) with all user-facing settings defines
+
+## Phase 2: Include Library (Core GLSL Modules)
+- [ ] [include/global.glsl](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/photon_v1.2a/shaders/include/global.glsl) — uniforms, #defines, constants
+- [ ] `include/utility/math.glsl` — noise, hash, math helpers
+- [ ] `include/utility/color.glsl` — color space conversions
+- [ ] `include/utility/encoding.glsl` — normal/material encoding
+- [ ] `include/utility/depth.glsl` — depth linearization, reprojection
+- [ ] `include/surface/waving.glsl` — waving plants/leaves
+- [ ] `include/lighting/shadows.glsl` — PCSS shadow sampling (Photon)
+- [ ] `include/lighting/ao.glsl` — GTAO/SSAO
+- [ ] `include/lighting/lighting.glsl` — main deferred lighting
+- [ ] `include/lighting/pbr.glsl` — PBR BRDF
+- [ ] `include/sky/atmosphere.glsl` — Rayleigh/Mie scattering (Photon)
+- [ ] `include/sky/clouds.glsl` — volumetric clouds (Complementary)
+- [ ] `include/sky/stars.glsl` — stars, sun, moon
+- [ ] `include/fog/fog.glsl` — volumetric fog (Photon)
+- [ ] `include/water/water.glsl` — water waves, normals, SSR (Complementary)
+- [ ] `include/water/underwater.glsl` — underwater fog/caustics (Complementary)
+- [ ] `include/post/tonemap.glsl` — tonemapping operators
+- [ ] `include/post/bloom.glsl` — bloom
+- [ ] `include/misc/nether.glsl` — Nether atmosphere (Photon)
+- [ ] `include/misc/end.glsl` — End atmosphere (Iteration T)
+
+## Phase 3: GBuffer Programs (world0/)
+- [ ] [shadow.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/shadow.vsh) / [shadow.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/shadow.fsh) — shadow map generation
+- [ ] [gbuffers_terrain.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_terrain.vsh) / [gbuffers_terrain.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_terrain.fsh) — terrain
+- [ ] [gbuffers_water.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_water.vsh) / [gbuffers_water.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_water.fsh) — water surface
+- [ ] [gbuffers_entities.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_entities.vsh) / [gbuffers_entities.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_entities.fsh) — entities
+- [ ] [gbuffers_block.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_block.vsh) / [gbuffers_block.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_block.fsh) — block entities
+- [ ] [gbuffers_hand.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_hand.vsh) / [gbuffers_hand.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_hand.fsh) — hand
+- [ ] [gbuffers_weather.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_weather.vsh) / [gbuffers_weather.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_weather.fsh) — rain/snow
+- [ ] [gbuffers_skytextured.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_skytextured.vsh) / [gbuffers_skytextured.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_skytextured.fsh) — vanilla sky
+- [ ] [gbuffers_skybasic.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_skybasic.vsh) / [gbuffers_skybasic.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_skybasic.fsh) — basic sky
+- [ ] [gbuffers_textured.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_textured.vsh) / [gbuffers_textured.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_textured.fsh) — particles etc.
+- [ ] [gbuffers_damagedblock.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_damagedblock.vsh) / [gbuffers_damagedblock.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_damagedblock.fsh)
+- [ ] [gbuffers_armor_glint.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_armor_glint.vsh) / [gbuffers_armor_glint.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_armor_glint.fsh)
+- [ ] [gbuffers_basic.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_basic.vsh) / [gbuffers_basic.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_basic.fsh)
+- [ ] [gbuffers_hand_water.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_hand_water.vsh) / [gbuffers_hand_water.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_hand_water.fsh)
+- [ ] [gbuffers_spidereyes.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_spidereyes.vsh) / [gbuffers_spidereyes.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_spidereyes.fsh)
+- [ ] [gbuffers_beaconbeam.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_beaconbeam.vsh) / [gbuffers_beaconbeam.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/gbuffers_beaconbeam.fsh)
+
+## Phase 4: Deferred/Composite Programs (world0/)
+- [ ] [deferred.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred.vsh) / [deferred.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred.fsh) — sky rendering
+- [ ] [deferred1.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred1.vsh) / [deferred1.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred1.fsh) — volumetric clouds
+- [ ] [deferred2.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred2.vsh) / [deferred2.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred2.fsh) — cloud upscaling + shadow
+- [ ] [deferred3.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred3.vsh) / [deferred3.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred3.fsh) — AO
+- [ ] [deferred4.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred4.vsh) / [deferred4.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/deferred4.fsh) — main deferred shading (lighting, shadows)
+- [ ] [composite.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite.vsh) / [composite.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite.fsh) — blend translucents (water, glass)
+- [ ] [composite1.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite1.vsh) / [composite1.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite1.fsh) — volumetric light / fog
+- [ ] [composite2.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite2.vsh) / [composite2.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite2.fsh) — DOF
+- [ ] [composite3.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite3.vsh) / [composite3.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite3.fsh) — TAA
+- [ ] [composite4.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite4.vsh) / [composite4.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite4.fsh) — bloom downsample
+- [ ] [composite5.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite5.vsh) / [composite5.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite5.fsh) — bloom upsample/merge
+- [ ] [composite6.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite6.vsh) / [composite6.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/composite6.fsh) — color grading + tonemapping
+- [ ] [final.vsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/final.vsh) / [final.fsh](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/iterationT%203.2.0/shaders/final.fsh) — FXAA + output
+
+## Phase 5: Nether World (world-1/) — Photon-style
+- [ ] Proxy/symlink or world-specific versions for all gbuffers
+- [ ] Nether-specific deferred/composite programs
+- [ ] Nether fog, lighting, atmosphere
+
+## Phase 6: End World (world1/) — Iteration T-style
+- [ ] End-specific gbuffers
+- [ ] End atmosphere, void rendering, end sky
+
+## Phase 7: Properties & Assets
+- [ ] [block.properties](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/photon_v1.2a/shaders/block.properties) — block ID assignments (merged/curated)
+- [ ] [entity.properties](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/photon_v1.2a/shaders/entity.properties) — entity ID assignments
+- [ ] [item.properties](file:///c:/Users/Ulysse/Documents/GitHub/OffShades/inspiration_shaders/photon_v1.2a/shaders/item.properties) — item ID assignments
+- [ ] `lang/en_US.lang` — GUI display names for all settings
+
+## Phase 8: Review & Polish
+- [ ] Verify settings.glsl GUI menu layout matches shaders.properties screens
+- [ ] Review dim/highlight settings + feature flags
+- [ ] Final review of all include guard and #define hygiene

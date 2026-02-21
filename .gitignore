@@ -3,7 +3,7 @@
 .idea/
 
 # Ignore photon shaders reference folder
-inspiration shaders/
+inspiration_shaders/
 *.suo
 *.user
 

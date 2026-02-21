@@ -1,0 +1,326 @@
+# OffShades — shaders/lang/en_US.lang
+# Human-readable GUI display names for all shader settings.
+# Corresponds to screen layout in shaders.properties.
+
+# ─── Screens ─────────────────────────────────────────────────────────────────
+screen.world        = World
+screen.lighting     = Lighting
+screen.sky          = Sky
+screen.fog          = Fog & Atmosphere
+screen.materials    = Materials
+screen.water        = Water
+screen.post         = Post-Processing
+screen.misc         = Miscellaneous
+screen.weather      = Weather
+screen.shadows      = Shadows
+screen.ao           = Ambient Occlusion
+screen.light_sources = Light Sources
+screen.sunlight_color   = Sunlight Color
+screen.sunlight_morning = Morning Color
+screen.sunlight_noon    = Noon Color
+screen.sunlight_evening = Evening Color
+screen.moonlight_color  = Moonlight Color
+screen.blocklight_color = Block Light Color
+screen.light_nether     = Nether Lighting
+screen.nether_color     = Nether Ambient Color
+screen.light_end        = End Lighting
+screen.end_light_color  = End Sun Color
+screen.end_ambient_color = End Ambient Color
+screen.aurora           = Auroras
+screen.stars            = Stars
+screen.crepuscular_rays = Crepuscular Rays
+screen.clouds           = Clouds
+screen.clouds_cumulus   = Cumulus Clouds
+screen.clouds_altocumulus = Altocumulus Clouds
+screen.clouds_cirrus    = Cirrus & Cirrocumulus
+screen.clouds_noctilucent = Noctilucent Clouds
+screen.fog_rlh          = Rayleigh Fog
+screen.fog_mie          = Mie Fog
+screen.fog_rlh_normal   = Normal Color
+screen.fog_rlh_rain     = Rain Color
+screen.fog_rlh_arid     = Arid Color
+screen.fog_rlh_snowy    = Snowy Color
+screen.fog_rlh_taiga    = Taiga Color
+screen.fog_rlh_jungle   = Jungle Color
+screen.fog_rlh_swamp    = Swamp Color
+screen.rp_settings      = Resource Pack Settings
+screen.reflections      = Reflections (SSR)
+screen.refraction       = Refraction
+screen.water_waves      = Water Waves
+screen.water_fog_coeff  = Water Fog Coefficients
+screen.color_grading    = Color Grading
+screen.exposure         = Exposure
+screen.developer        = Developer Options
+
+# ─── World ───────────────────────────────────────────────────────────────────
+option.WAVING_PLANTS          = Waving Plants
+option.WAVING_PLANTS.comment  = Enables wind-driven vertex animation on grass, flowers, and crops.
+option.WAVING_PLANT_SPEED     = Plant Wave Speed
+option.WAVING_LEAVES          = Waving Leaves
+option.WAVING_LEAVES.comment  = Enables wind-driven vertex animation on tree leaves.
+option.SLANTED_RAIN           = Slanted Rain
+option.RAIN_OPACITY           = Rain Opacity
+option.SNOW_OPACITY           = Snow Opacity
+option.SEA_LEVEL              = Sea Level
+option.SEA_LEVEL.comment      = Y-coordinate of the ocean surface. Default: 62.
+option.LIGHTNING_FLASH        = Lightning Flash
+option.MOON_PHASE_AFFECTS_BRIGHTNESS = Moon Phase Lighting
+option.MOON_PHASE_AFFECTS_BRIGHTNESS.comment = Moon brightness varies with lunar phase.
+
+# ─── Lighting ─────────────────────────────────────────────────────────────────
+option.SHADOW              = Shadows
+option.SHADOW_PCF          = Soft Shadows (PCF)
+option.SHADOW_COLOR        = Colored Shadows
+option.SHADOW_COLOR.comment = Translucent objects cast tinted shadows.
+option.SHADOW_VPS          = PCSS (Variable Penumbra)
+option.SHADOW_VPS.comment   = Percentage-Closer Soft Shadows — softer but more expensive.
+option.shadowMapResolution = Shadow Resolution
+option.shadowDistance      = Shadow Distance
+option.sunPathRotation     = Sun Angle
+option.SHADOW_PENUMBRA_SCALE = Penumbra Scale
+option.ENTITY_SHADOWS      = Entity Shadows
+option.BLOCK_ENTITY_SHADOWS = Block Entity Shadows
+option.SSS_STEPS           = SSS Steps
+
+option.SHADER_AO           = Ambient Occlusion
+option.SHADER_AO.value.SHADER_AO_NONE = Off
+option.SHADER_AO.value.SHADER_AO_SSAO = SSAO
+option.SHADER_AO.value.SHADER_AO_GTAO = GTAO (Best)
+option.VANILLA_AO          = Vanilla AO Blend
+option.AO_IN_SUNLIGHT      = AO in Sunlight
+option.SSAO_STEPS          = SSAO Samples
+option.SSAO_RADIUS         = SSAO Radius
+option.GTAO_SLICES         = GTAO Slices
+option.GTAO_HORIZON_STEPS  = GTAO Horizon Steps
+option.GTAO_RADIUS         = GTAO Radius
+
+option.HANDHELD_LIGHTING           = Handheld Lighting
+option.HANDHELD_LIGHTING_INTENSITY = Handheld Intensity
+option.CLOUD_SHADOWS               = Cloud Shadows
+option.CLOUD_SHADOWS_INTENSITY     = Cloud Shadow Intensity
+option.SH_SKYLIGHT                 = Spherical Harmonics Sky
+option.SSS_SHEEN                   = SSS Sheen
+option.SSS_INTENSITY               = SSS Intensity
+option.SHADING_STRENGTH            = Shading Strength
+
+option.SUN_I      = Sunlight Intensity
+option.MOON_I     = Moonlight Intensity
+option.MOON_R     = Red
+option.MOON_G     = Green
+option.MOON_B     = Blue
+option.BLOCKLIGHT_I = Block Light Intensity
+option.BLOCKLIGHT_R = Red
+option.BLOCKLIGHT_G = Green
+option.BLOCKLIGHT_B = Blue
+option.SKYLIGHT_I   = Sky Ambient Intensity
+option.BOUNCED_LIGHT_I = Bounced Light Intensity
+option.CAVE_LIGHTING_I = Cave Lighting Intensity
+option.SUN_MR = Red
+option.SUN_MG = Green
+option.SUN_MB = Blue
+option.SUN_NR = Red
+option.SUN_NG = Green
+option.SUN_NB = Blue
+option.SUN_ER = Red
+option.SUN_EG = Green
+option.SUN_EB = Blue
+
+option.NETHER_USE_BIOME_COLOR = Biome-Tinted Ambient
+option.NETHER_I = Nether Ambient Intensity
+option.NETHER_S = Nether Ambient Saturation
+option.NETHER_R = Red
+option.NETHER_G = Green
+option.NETHER_B = Blue
+option.NETHER_FOG_INTENSITY = Nether Fog Intensity
+
+option.END_LIGHT_R = Red
+option.END_LIGHT_G = Green
+option.END_LIGHT_B = Blue
+option.END_LIGHT_I = End Sun Intensity
+option.END_AMBIENT_R = Red
+option.END_AMBIENT_G = Green
+option.END_AMBIENT_B = Blue
+option.END_AMBIENT_I = End Ambient Intensity
+
+# ─── Sky ─────────────────────────────────────────────────────────────────────
+option.VANILLA_SUN         = Vanilla Sun Texture
+option.VANILLA_MOON        = Vanilla Moon Texture
+option.SUN_ANGULAR_RADIUS  = Sun Angular Radius
+option.MOON_ANGULAR_RADIUS = Moon Angular Radius
+option.RAINBOWS            = Rainbows
+option.END_SUN_EFFECT      = End Sun Effect
+
+option.AURORA_NORMAL            = Aurora in Normal Weather
+option.AURORA_SNOW              = Aurora in Snowy Biomes
+option.AURORA_BRIGHTNESS        = Aurora Brightness
+option.AURORA_FREQUENCY         = Aurora Frequency
+option.AURORA_CLOUD_LIGHTING    = Aurora Cloud Lighting
+option.AURORA_GROUND_LIGHTING   = Aurora Ground Lighting
+
+option.STARS          = Stars
+option.STARS_INTENSITY = Star Brightness
+option.STARS_COVERAGE  = Star Coverage
+
+option.CREPUSCULAR_RAYS             = Crepuscular Rays
+option.CREPUSCULAR_RAYS_INTENSITY   = Ray Intensity
+option.CREPUSCULAR_RAYS_STEPS_HORIZON = Horizon Steps
+option.CREPUSCULAR_RAYS_STEPS_ZENITH  = Zenith Steps
+
+option.CLOUDS_TEMPORAL_UPSCALING     = Temporal Upscaling
+option.CLOUDS_SCALE                  = Cloud Scale
+option.CLOUDS_AERIAL_PERSPECTIVE_BOOST = Aerial Perspective Boost
+option.CLOUDS_CUMULUS                = Cumulus Clouds
+option.CLOUDS_ALTOCUMULUS            = Altocumulus Clouds
+option.CLOUDS_CIRRUS                 = Cirrus Clouds
+option.CLOUDS_NOCTILUCENT            = Noctilucent Clouds
+option.CLOUDS_CUMULUS_PRIMARY_STEPS_H   = Horizontal Primary Steps
+option.CLOUDS_CUMULUS_PRIMARY_STEPS_Z   = Vertical Primary Steps
+option.CLOUDS_CUMULUS_LIGHTING_STEPS    = Lighting Steps
+option.CLOUDS_CUMULUS_AMBIENT_STEPS     = Ambient Steps
+option.CLOUDS_CUMULUS_ALTITUDE          = Cloud Base Altitude
+option.CLOUDS_CUMULUS_THICKNESS         = Cloud Thickness
+option.CLOUDS_CUMULUS_DENSITY           = Cloud Density
+option.CLOUDS_CUMULUS_COVERAGE          = Cloud Coverage
+option.CLOUDS_CUMULUS_SIZE              = Cloud Size
+option.CLOUDS_CUMULUS_DETAIL_STRENGTH   = Detail Strength
+option.CLOUDS_CUMULUS_WIND_SPEED        = Wind Speed
+option.CLOUDS_CUMULUS_WIND_ANGLE        = Wind Angle
+option.CLOUDS_NOCTILUCENT_INTENSITY = Brightness
+option.CLOUDS_NOCTILUCENT_RARITY    = Rarity
+
+# ─── Fog ─────────────────────────────────────────────────────────────────────
+option.VL                     = Volumetric Light & Fog
+option.OVERWORLD_FOG_INTENSITY = Fog Intensity
+option.VL_RENDER_SCALE        = VL Render Scale
+option.AIR_FOG_CLOUDY_NOISE   = Cloudy Fog Noise
+option.BORDER_FOG             = Border Fog
+option.CAVE_FOG               = Cave Fog
+option.BLOOMY_FOG             = Bloomy Fog
+option.BLOOMY_FOG_INTENSITY   = Bloomy Fog Intensity
+option.BLOOMY_RAIN            = Bloomy Rain
+
+option.AIR_FOG_RAYLEIGH_DENSITY = Rayleigh Density
+option.AIR_FOG_RAYLEIGH_R = Red
+option.AIR_FOG_RAYLEIGH_G = Green
+option.AIR_FOG_RAYLEIGH_B = Blue
+option.AIR_FOG_RAYLEIGH_FALLOFF_START     = Falloff Start
+option.AIR_FOG_RAYLEIGH_FALLOFF_HALF_LIFE = Falloff Half-Life
+
+option.AIR_FOG_MIE_DENSITY_MORNING  = Morning Density
+option.AIR_FOG_MIE_DENSITY_NOON     = Noon Density
+option.AIR_FOG_MIE_DENSITY_EVENING  = Evening Density
+option.AIR_FOG_MIE_DENSITY_MIDNIGHT = Midnight Density
+option.AIR_FOG_MIE_DENSITY_RAIN     = Rain Density
+option.AIR_FOG_MIE_DENSITY_BLUE_HOUR = Blue Hour Density
+option.AIR_FOG_MIE_FALLOFF_START     = Falloff Start
+option.AIR_FOG_MIE_FALLOFF_HALF_LIFE = Falloff Half-Life
+
+# ─── Materials ───────────────────────────────────────────────────────────────
+option.NORMAL_MAPPING    = Normal Maps
+option.SPECULAR_MAPPING  = Specular Maps
+option.POM               = Parallax Occlusion Mapping
+option.TEXTURE_FORMAT    = Texture Format
+option.EMISSION_STRENGTH = Emission Strength
+option.POM_DEPTH         = POM Depth
+option.POM_SAMPLES       = POM Samples
+option.POM_DISTANCE      = POM Distance
+option.POM_SHADOW        = POM Self-Shadowing
+option.POM_SHADOW_SAMPLES = POM Shadow Samples
+option.POM_SLOPE_NORMALS = POM Slope Normals
+option.HARDCODED_SPECULAR = Hardcoded Specular
+option.HARDCODED_EMISSION = Hardcoded Emission
+option.HARDCODED_SSS      = Hardcoded SSS
+option.RAIN_PUDDLES       = Rain Puddles
+
+option.ENVIRONMENT_REFLECTIONS  = Environment Reflections
+option.SKY_REFLECTIONS          = Sky Reflections
+option.SSR_ROUGHNESS_SUPPORT    = Rough SSR
+option.SSR_RAY_COUNT            = SSR Rays
+option.SSR_INTERSECTION_STEPS_SMOOTH = Smooth Intersection Steps
+option.SSR_INTERSECTION_STEPS_ROUGH  = Rough Intersection Steps
+option.SSR_REFINEMENT_STEPS     = SSR Refinement Steps
+option.SSR_ROUGHNESS_THRESHOLD  = SSR Roughness Threshold
+
+option.REFRACTION         = Refraction
+option.REFRACTION_INTENSITY = Refraction Intensity
+
+# ─── Water ───────────────────────────────────────────────────────────────────
+option.WATER_WAVES              = Water Waves
+option.WATER_WAVE_ITERATIONS    = Wave Iterations
+option.WATER_WAVE_STRENGTH      = Wave Strength
+option.WATER_WAVE_FREQUENCY     = Wave Frequency
+option.WATER_WAVE_SPEED_STILL   = Still Water Speed
+option.WATER_WAVE_SPEED_FLOWING = Flowing Water Speed
+option.WATER_WAVE_PERSISTENCE   = Wave Persistence
+option.WATER_WAVE_LACUNARITY    = Wave Lacunarity
+option.WATER_PARALLAX           = Water Parallax
+option.WATER_DISPLACEMENT       = Water Displacement
+option.WATER_WAVES_HEIGHT_VARIATION = Height Variation
+option.WATER_EDGE_HIGHLIGHT     = Water Edge Highlight
+option.WATER_EDGE_HIGHLIGHT_INTENSITY = Edge Highlight Intensity
+option.WATER_CAUSTICS           = Water Caustics
+option.WATER_CAUSTICS_INTENSITY = Caustic Intensity
+option.SNELLS_WINDOW            = Snell's Window
+option.WATER_TEXTURE            = Water Texture
+option.BIOME_WATER_COLOR        = Biome Water Color
+option.WATER_ABSORPTION_R = Red Absorption
+option.WATER_ABSORPTION_G = Green Absorption
+option.WATER_ABSORPTION_B = Blue Absorption
+option.WATER_SCATTERING   = Scattering
+option.WATER_ABSORPTION_R_UNDERWATER = Red Absorption (UW)
+option.WATER_ABSORPTION_G_UNDERWATER = Green Absorption (UW)
+option.WATER_ABSORPTION_B_UNDERWATER = Blue Absorption (UW)
+option.WATER_SCATTERING_UNDERWATER  = Scattering (UW)
+
+# ─── Post-Processing ──────────────────────────────────────────────────────────
+option.BLOOM            = Bloom
+option.BLOOM_INTENSITY  = Bloom Intensity
+option.DOF              = Depth of Field
+option.DOF_INTENSITY    = DOF Intensity
+option.DOF_SAMPLES      = DOF Samples
+option.DOF_FOCUS        = DOF Focus
+option.MOTION_BLUR      = Motion Blur
+option.MOTION_BLUR_INTENSITY = Motion Blur Intensity
+option.TAA              = Temporal AA (TAA)
+option.FXAA             = Fast AA (FXAA)
+option.TAAU             = TAA Upscaling (TAAU)
+option.TAAU_RENDER_SCALE = TAAU Render Scale
+option.CAS              = Sharpening (CAS)
+option.CAS_INTENSITY    = Sharpness
+option.VIGNETTE         = Vignette
+option.VIGNETTE_INTENSITY = Vignette Intensity
+
+option.tonemap = Tonemap
+option.tonemap.value.0 = Lottes
+option.tonemap.value.1 = ACES
+option.tonemap.value.2 = Hejl-Burgess
+option.tonemap.value.3 = Reinhard
+
+option.GRADE_BRIGHTNESS   = Brightness
+option.GRADE_CONTRAST     = Contrast
+option.GRADE_SATURATION   = Saturation
+option.GRADE_WHITE_BALANCE = White Balance
+option.GRADE_ORANGE_SAT_BOOST = Orange Saturation
+option.GRADE_TEAL_SAT_BOOST   = Teal Saturation
+option.GRADE_GREEN_SAT_BOOST  = Green Saturation
+option.GRADE_GREEN_HUE_SHIFT  = Green Hue Shift
+option.PURKINJE_SHIFT         = Purkinje Shift
+option.PURKINJE_SHIFT_INTENSITY = Purkinje Intensity
+
+option.AUTO_EXPOSURE              = Auto Exposure
+option.AUTO_EXPOSURE_BIAS         = Exposure Bias
+option.AUTO_EXPOSURE_MIN          = Min Exposure
+option.AUTO_EXPOSURE_MAX          = Max Exposure
+option.AUTO_EXPOSURE_RATE_DIM_TO_BRIGHT = Adapt Rate (→ Bright)
+option.AUTO_EXPOSURE_RATE_BRIGHT_TO_DIM = Adapt Rate (→ Dark)
+option.MANUAL_EXPOSURE_VALUE      = Manual Exposure
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+option.DEBUG_VIEW         = Debug View
+option.DEBUG_SAMPLER      = Debug Sampler
+option.WHITE_WORLD        = White World
+option.FANCY_NETHER_PORTAL = Fancy Nether Portal
+option.CUSTOM_SKY          = Custom Sky
+option.CUSTOM_SKY_BRIGHTNESS = Custom Sky Brightness
+option.ENCHANTMENT_GLINT_BRIGHTNESS = Enchant Glint
+option.DITHERED_TRANSLUCENCY_FALLBACK = Dithered Translucency
