@@ -1,12 +1,10 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.fsh  (Step 2 v6)
+// OffShades — gbuffers_terrain.fsh  (Step 2 v7)
 //
-// Key fixes:
-//  - World-space normals + world-space sun direction: stable, no camera drift
-//  - smoothstep back-face attenuation instead of hard cutoff: no flickering
-//  - worldTime check for day/night instead of lmCoord.y (unreliable)
+// Bias is now handled by normal offset in the vertex shader.
+// The depth comparison here uses only a tiny epsilon for float precision.
 // ─────────────────────────────────────────────────────────────────────────────
 
 in vec2 texCoord;
@@ -42,13 +40,15 @@ const vec2 POISSON[12] = vec2[](
     vec2(-0.791559, -0.597710)
 );
 
-float sampleShadowPCF(vec3 shadowCoords, float bias, float spread) {
+float sampleShadowPCF(vec3 shadowCoords, float spread) {
     float lit   = 0.0;
     float texel = 1.0 / 4096.0;
+    // Tiny epsilon to handle floating point self-comparison
+    float eps   = 0.0001;
     for (int i = 0; i < 12; i++) {
         vec2  offset  = POISSON[i] * texel * spread;
         float storedZ = texture(shadowtex0, shadowCoords.xy + offset).r;
-        lit += (storedZ > shadowCoords.z - bias) ? 1.0 : 0.0;
+        lit += (storedZ > shadowCoords.z - eps) ? 1.0 : 0.0;
     }
     return lit / 12.0;
 }
@@ -92,11 +92,10 @@ void main() {
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                float bias   = mix(0.0008, 0.0002, clamp(cosTheta, 0.0, 1.0));
                 float dist   = length(shadowPos.xyz);
                 float spread = mix(1.0, 4.0, clamp(dist / 32.0, 0.0, 1.0));
 
-                float pcf = sampleShadowPCF(shadowCoords, bias, spread);
+                float pcf = sampleShadowPCF(shadowCoords, spread);
 
                 // Edge fade at frustum bounds
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
