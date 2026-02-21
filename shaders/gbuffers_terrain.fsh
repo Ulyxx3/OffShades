@@ -1,10 +1,12 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.fsh  (Step 2 v8)
+// OffShades — gbuffers_terrain.fsh  (Step 3)
 //
-// Shadows: texelFetch (nearest-neighbor, no bilinear blur) = crisp block edges
-// Night fix: lmCoord.y > 0.5 = outdoors check, works both day AND night
+// Adds sky-colored ambient lighting:
+//  - Lit areas: warm sun color (bright white at noon, orange at sunset)
+//  - Shadow areas: sky blue tint (pale blue ambient, not flat grey)
+//  - Night: cool dark-blue moon ambient
 // ─────────────────────────────────────────────────────────────────────────────
 
 in vec2 texCoord;
@@ -17,14 +19,37 @@ uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D shadowtex0;
 
-// shadowLightPosition: sun by day, moon by night — always above horizon
 uniform vec3 shadowLightPosition;
 uniform mat4 gbufferModelViewInverse;
 
-const int SHADOW_MAP_RES = 4096;  // must match shadowMapResolution
-
 /* DRAWBUFFERS:0 */
 out vec4 fragColor;
+
+// ── Sky palette (matches gbuffers_skybasic) ───────────────────────────────────
+// Sun height in world space drives time-of-day blending.
+vec3 skyAmbientColor(float sunHeight) {
+    float dayFactor    = smoothstep(-0.10, 0.25, sunHeight);
+    float sunriseFactor = pow(max(1.0 - abs(sunHeight) * 3.0, 0.0), 2.0);
+
+    vec3 nightAmb  = vec3(0.04, 0.05, 0.10);   // dark cool blue (moonlit)
+    vec3 dayAmb    = vec3(0.45, 0.58, 0.85);   // sky blue
+    vec3 sunsetAmb = vec3(0.80, 0.42, 0.18);   // warm orange
+
+    vec3 base = mix(nightAmb, dayAmb, dayFactor);
+    return mix(base, sunsetAmb, sunriseFactor * dayFactor);
+}
+
+vec3 sunColor(float sunHeight) {
+    float dayFactor     = smoothstep(-0.05, 0.25, sunHeight);
+    float sunriseFactor = pow(max(1.0 - abs(sunHeight) * 4.0, 0.0), 2.0);
+
+    vec3 nightCol   = vec3(0.50, 0.55, 0.75);   // cool moon white
+    vec3 dayCol     = vec3(1.00, 0.97, 0.90);   // neutral white-warm
+    vec3 sunsetCol  = vec3(1.00, 0.60, 0.20);   // deep orange
+
+    vec3 base = mix(nightCol, dayCol, dayFactor);
+    return mix(base, sunsetCol, sunriseFactor * dayFactor);
+}
 
 void main() {
     // ── 1. Albedo ─────────────────────────────────────────────────────────────
@@ -32,21 +57,22 @@ void main() {
     if (albedo.a < 0.1) discard;
     albedo *= glColor;
 
-    // ── 2. Lightmap ───────────────────────────────────────────────────────────
+    // ── 2. Lightmap (block + sky brightness) ─────────────────────────────────
     vec3 lightmapColor = texture(lightmap, lmCoord).rgb;
 
-    // ── 3. Shadow ─────────────────────────────────────────────────────────────
-    float shadowFactor = 1.0;
+    // ── 3. Time-of-day colors ─────────────────────────────────────────────────
+    vec3 lightDirWorld = normalize(mat3(gbufferModelViewInverse) * shadowLightPosition);
+    float sunHeight    = lightDirWorld.y;  // -1=below horizon, +1=zenith
 
-    // Outdoor check: high lmCoord.y = has sky light access = outdoors.
-    // Works both day AND night — shadow map uses moon at night automatically.
+    vec3 ambientColor = skyAmbientColor(sunHeight);   // for shadow areas
+    vec3 directColor  = sunColor(sunHeight);          // for lit areas
+
+    // ── 4. Shadow ─────────────────────────────────────────────────────────────
+    float shadowFactor = 1.0;
     bool isOutdoor = (lmCoord.y > 0.5);
 
     if (isOutdoor) {
-        // Current light direction in world space (sun by day, moon by night)
-        vec3 lightDirWorld = normalize(mat3(gbufferModelViewInverse) * shadowLightPosition);
-        float cosTheta     = dot(fragNormal, lightDirWorld);
-
+        float cosTheta  = dot(fragNormal, lightDirWorld);
         float geoFactor = smoothstep(-0.05, 0.1, cosTheta);
 
         if (geoFactor > 0.001) {
@@ -56,11 +82,9 @@ void main() {
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                // Single-sample hard shadow — no blurring
                 float storedZ    = texture(shadowtex0, shadowCoords.xy).r;
                 float hardShadow = (storedZ > shadowCoords.z - 0.0001) ? 1.0 : 0.0;
 
-                // Edge fade at frustum boundary
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
                 float edgeFade = smoothstep(0.0, 0.15, min(edgeDist.x, edgeDist.y));
                 hardShadow = mix(1.0, hardShadow, edgeFade);
@@ -74,11 +98,18 @@ void main() {
         }
     }
 
-    // ── 4. Combine ────────────────────────────────────────────────────────────
-    float ambientMin = 0.40;   // slightly raised — avoids too-dark sides
-    float shadow     = mix(ambientMin, 1.0, shadowFactor);
+    // ── 5. Compose lighting ───────────────────────────────────────────────────
+    // Shadow areas get sky-blue ambient tint (30% tint strength, subtle)
+    // Lit areas get sun-warm direct light tint
+    const float TINT_STRENGTH = 0.30;
+    vec3 ambientTint = mix(vec3(1.0), ambientColor, TINT_STRENGTH);
+    vec3 directTint  = mix(vec3(1.0), directColor,  TINT_STRENGTH);
+    vec3 lightTint   = mix(ambientTint, directTint, shadowFactor);
 
-    albedo.rgb *= lightmapColor * shadow;
+    // Shadow brightness (same range as before: 0.40 ambient, 1.0 lit)
+    float lightLevel = mix(0.40, 1.0, shadowFactor);
+
+    albedo.rgb *= lightmapColor * lightLevel * lightTint;
 
     fragColor = albedo;
 }
