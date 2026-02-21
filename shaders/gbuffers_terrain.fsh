@@ -22,6 +22,7 @@ uniform sampler2D shadowtex0;
 
 uniform vec3 shadowLightPosition;
 uniform mat4 gbufferModelViewInverse;
+uniform int  frameCounter;
 
 /* DRAWBUFFERS:03 */
 layout(location = 0) out vec4 fragColor;
