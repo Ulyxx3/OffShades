@@ -23,7 +23,7 @@ out vec3 fragNormal;   // world-space, for smooth geometric attenuation in FSH
 out vec4 shadowPos;
 
 // Same distortion as shadow.vsh
-const float SHADOW_DISTORT = 0.15;
+const float SHADOW_DISTORT = 0.08;
 vec2 distortShadow(vec2 pos) {
     float factor = length(pos) * (1.0 - SHADOW_DISTORT) + SHADOW_DISTORT;
     return pos / factor;

@@ -93,7 +93,7 @@ void main() {
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
                 float dist   = length(shadowPos.xyz);
-                float spread = mix(1.0, 4.0, clamp(dist / 32.0, 0.0, 1.0));
+                float spread = mix(0.5, 3.0, clamp(dist / 20.0, 0.0, 1.0));
 
                 float pcf = sampleShadowPCF(shadowCoords, spread);
 

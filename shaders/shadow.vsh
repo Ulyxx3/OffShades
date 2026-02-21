@@ -14,7 +14,7 @@
 // ── Distortion strength ───────────────────────────────────────────────────────
 // Range [0, 1].  Lower = more aggressive distortion (more near-player res).
 // 0.10 = very strong (BSL style),  0.20 = moderate,  0.85+ = nearly none
-const float SHADOW_DISTORT = 0.15;
+const float SHADOW_DISTORT = 0.08;
 
 // Radial warp: compresses far positions, expands near positions
 vec2 distortShadow(vec2 pos) {
