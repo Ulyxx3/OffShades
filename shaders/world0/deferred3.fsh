@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world0/deferred3.fsh
@@ -5,6 +6,7 @@
 ================================================================================
 */
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/utility/encoding.glsl"
 #include "/include/lighting/ao.glsl"
 

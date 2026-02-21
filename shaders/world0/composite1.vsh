@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* composite1.vsh — VL fog pass */
 #include "/include/global.glsl"
 varying vec2 v_uv;

@@ -41,10 +41,10 @@ float cloud_fbm(vec3 p, int octaves) {
 
 // ─── Cumulus cloud density ───────────────────────────────────────────────────
 float cumulus_density(vec3 world_pos) {
-    float altitude = world_pos.y - CUMULUS_ALTITUDE;
-    if (abs(altitude) > CUMULUS_THICKNESS * 0.5) return 0.0;
+    float altitude = world_pos.y - CLOUDS_CUMULUS_ALTITUDE;
+    if (abs(altitude) > CLOUDS_CUMULUS_THICKNESS * 0.5) return 0.0;
 
-    float height_grad = 1.0 - abs(altitude) / (CUMULUS_THICKNESS * 0.5);
+    float height_grad = 1.0 - abs(altitude) / (CLOUDS_CUMULUS_THICKNESS * 0.5);
     height_grad = smoothstep(0.0, 1.0, height_grad);
 
     // Animate with wind
@@ -52,21 +52,21 @@ float cumulus_density(vec3 world_pos) {
     vec3 sample_pos = vec3((world_pos.xz + wind + cameraPosition.xz) * 0.003, altitude * 0.01);
 
     float shape = cloud_fbm(sample_pos, 4);
-    float density = max(0.0, shape - (1.0 - CUMULUS_COVERAGE)) * height_grad;
-    return density * CUMULUS_DENSITY;
+    float density = max(0.0, shape - (1.0 - CLOUDS_CUMULUS_COVERAGE)) * height_grad;
+    return density * CLOUDS_CUMULUS_DENSITY;
 }
 
 // ─── Cirrus cloud density (2D) ───────────────────────────────────────────────
 float cirrus_density(vec3 world_pos, vec3 rd) {
-    if (world_pos.y + rd.y * 10000.0 < CIRRUS_ALTITUDE && rd.y < 0.0) return 0.0;
+    if (world_pos.y + rd.y * 10000.0 < CLOUDS_CIRRUS_ALTITUDE && rd.y < 0.0) return 0.0;
 
     // Project to cirrus plane
-    float t = (CIRRUS_ALTITUDE - world_pos.y) / rd.y;
+    float t = (CLOUDS_CIRRUS_ALTITUDE - world_pos.y) / rd.y;
     if (t < 0.0) return 0.0;
     vec2  plane_pos = (world_pos.xz + rd.xz * t + cameraPosition.xz + vec2(frameTimeCounter * 0.002)) * 0.002;
 
     float c = cloud_fbm(vec3(plane_pos, 0.0), 3);
-    return max(0.0, c - (1.0 - CIRRUS_COVERAGE)) * CIRRUS_DENSITY;
+    return max(0.0, c - (1.0 - CLOUDS_CIRRUS_COVERAGE)) * CLOUDS_CIRRUS_DENSITY;
 }
 
 // ─── Cloud lighting ─────────────────────────────────────────────────────────
@@ -91,15 +91,15 @@ vec3 cloud_light(vec3 world_pos, vec3 sun_dir, vec3 sun_color) {
 // Returns RGBA: .rgb = scattered light, .a = transmittance
 vec4 raymarch_cumulus(vec3 ro, vec3 rd, vec3 sun_dir, vec3 sun_color) {
     // Find cloud layer intersection
-    float t_enter = (CUMULUS_ALTITUDE - CUMULUS_THICKNESS * 0.5 - ro.y) / rd.y;
-    float t_exit  = (CUMULUS_ALTITUDE + CUMULUS_THICKNESS * 0.5 - ro.y) / rd.y;
+    float t_enter = (CLOUDS_CUMULUS_ALTITUDE - CLOUDS_CUMULUS_THICKNESS * 0.5 - ro.y) / rd.y;
+    float t_exit  = (CLOUDS_CUMULUS_ALTITUDE + CLOUDS_CUMULUS_THICKNESS * 0.5 - ro.y) / rd.y;
 
     if (rd.y == 0.0 || t_exit < 0.0 || t_enter > t_exit) return vec4(0.0, 0.0, 0.0, 1.0);
 
     t_enter = max(t_enter, 0.0);
     t_exit  = min(t_exit, 8000.0);
 
-    const int   STEPS    = CUMULUS_STEPS;
+    const int   STEPS    = CLOUDS_CUMULUS_PRIMARY_STEPS_H;
     float step_size = (t_exit - t_enter) / float(STEPS);
 
     vec3  scatter      = vec3(0.0);

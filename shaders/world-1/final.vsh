@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world-1/final.vsh — Nether final pass */
 #define WORLD_NETHER
 #include "/include/global.glsl"

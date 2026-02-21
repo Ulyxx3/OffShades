@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world0/deferred1.fsh
@@ -6,6 +7,7 @@
 ================================================================================
 */
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/sky/clouds.glsl"
 
 varying vec2 v_uv;
@@ -15,7 +17,7 @@ layout(location = 0) out vec4 cloud_out; // colortex9
 
 void main() {
     vec3 sun_dir_w  = normalize((gbufferModelViewInverse * vec4(sun_dir, 0.0)).xyz);
-    vec3 sun_color  = srgb_to_linear(vec3(SUN_COLOR_R, SUN_COLOR_G, SUN_COLOR_B)) * SUN_BRIGHTNESS;
+    vec3 sun_color  = sun_color(sun_dir_w);
 
     // Reconstruct view direction
     vec3 view_pos   = screen_to_view(v_uv, 0.9999);

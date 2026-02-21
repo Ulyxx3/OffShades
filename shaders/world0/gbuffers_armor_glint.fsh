@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world0/gbuffers_armor_glint.fsh */
 #include "/include/global.glsl"
 uniform sampler2D gtexture;

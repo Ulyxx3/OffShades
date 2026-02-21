@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world1/deferred.vsh — End deferred quad */
 #define WORLD_END
 #include "/include/global.glsl"

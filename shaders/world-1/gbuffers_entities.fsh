@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world-1/gbuffers_entities.fsh — Nether proxy */
 #define WORLD_NETHER
 #include "/include/global.glsl"

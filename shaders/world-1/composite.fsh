@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world-1/composite.fsh
@@ -7,6 +8,7 @@
 */
 #define WORLD_NETHER
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/misc/nether.glsl"
 #include "/include/post/tonemap.glsl"
 #include "/include/post/bloom.glsl"

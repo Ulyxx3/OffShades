@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world-1/deferred.vsh / deferred.fsh  proxy vertex shader

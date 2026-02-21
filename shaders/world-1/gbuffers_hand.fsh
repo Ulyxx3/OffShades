@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* Nether proxy */ #define WORLD_NETHER
 #include "/include/global.glsl"
 #include "/include/utility/encoding.glsl"

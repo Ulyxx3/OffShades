@@ -16,7 +16,7 @@
 // Simple hemisphere sampling SSAO
 float compute_ssao(vec3 screen_pos, vec3 view_pos, vec3 view_normal, float dither) {
     const int  SSAO_SAMPLES = 8;
-    const float SSAO_RADIUS = SHADER_AO_RADIUS;
+    const float ssao_radius = SHADER_AO_RADIUS;
 
     float ao        = 0.0;
     float total     = 0.0;
@@ -39,7 +39,7 @@ float compute_ssao(vec3 screen_pos, vec3 view_pos, vec3 view_normal, float dithe
         vec3 sample_view = tangent * sample_dir.x + bitangent * sample_dir.y + view_normal * sample_dir.z;
 
         float scale = mix(0.1, 1.0, float(i + 1) / float(SSAO_SAMPLES));
-        vec3  sample_pos = view_pos + sample_view * SSAO_RADIUS * scale;
+        vec3  sample_pos = view_pos + sample_view * ssao_radius * scale;
 
         // Project to screen
         vec4 clip_pos     = gbufferProjection * vec4(sample_pos, 1.0);
@@ -50,7 +50,7 @@ float compute_ssao(vec3 screen_pos, vec3 view_pos, vec3 view_normal, float dithe
 
         float depth       = texture(depthtex0, sample_screen.xy).r;
         vec3  real_pos    = screen_to_view(sample_screen.xy, depth);
-        float range_check = smoothstep(0.0, 1.0, SSAO_RADIUS / abs(view_pos.z - real_pos.z));
+        float range_check = smoothstep(0.0, 1.0, ssao_radius / abs(view_pos.z - real_pos.z));
 
         ao    += range_check * step(real_pos.z, sample_pos.z - 0.015);
         total += 1.0;

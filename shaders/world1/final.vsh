@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world1/final.vsh — End final output pass */
 #define WORLD_END
 #include "/include/global.glsl"

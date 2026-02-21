@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world-1/deferred.fsh
@@ -8,6 +9,7 @@
 #define WORLD_NETHER
 #include "/include/global.glsl"
 #include "/include/utility/encoding.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/misc/nether.glsl"
 
 varying vec2 v_uv;

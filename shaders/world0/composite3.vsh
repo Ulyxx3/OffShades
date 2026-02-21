@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* composite3.vsh — TAA pass */
 #include "/include/global.glsl"
 varying vec2 v_uv;

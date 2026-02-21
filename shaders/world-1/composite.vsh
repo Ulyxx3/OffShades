@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world-1/composite.vsh */
 #define WORLD_NETHER
 #include "/include/global.glsl"

@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world1/composite.fsh
@@ -6,6 +7,7 @@
 */
 #define WORLD_END
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/misc/end.glsl"
 #include "/include/post/tonemap.glsl"
 #include "/include/post/bloom.glsl"

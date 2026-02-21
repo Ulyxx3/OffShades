@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world1/gbuffers_basic.fsh — End proxy */
 #define WORLD_END
 #include "/include/global.glsl"

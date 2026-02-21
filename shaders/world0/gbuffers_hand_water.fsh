@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world0/gbuffers_hand_water.fsh — water held in hand */
 #include "/include/global.glsl"
 uniform sampler2D gtexture;

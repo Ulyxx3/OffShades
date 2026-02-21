@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world0/composite1.fsh
@@ -5,6 +6,7 @@
 ================================================================================
 */
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/fog/fog.glsl"
 
 varying vec2 v_uv;
@@ -23,7 +25,7 @@ void main() {
     vec3 world_dir  = normalize(scene_pos - vec3(0.0)); // camera-relative
 
     vec3 sun_dir_w  = normalize((gbufferModelViewInverse * vec4(sun_dir, 0.0)).xyz);
-    vec3 sun_color  = srgb_to_linear(vec3(SUN_COLOR_R, SUN_COLOR_G, SUN_COLOR_B)) * SUN_BRIGHTNESS;
+    vec3 sun_color  = sun_color(sun_dir_w);
     vec3 sky_irr    = texture(colortex4, v_uv).rgb;
 
     float skylight  = float(eyeBrightnessSmooth.y) / 240.0;

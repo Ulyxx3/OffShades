@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* composite2.vsh — DOF pass */
 #include "/include/global.glsl"
 varying vec2 v_uv;

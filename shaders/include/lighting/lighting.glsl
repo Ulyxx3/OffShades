@@ -11,6 +11,7 @@
 #include "/include/utility/color.glsl"
 #include "/include/lighting/pbr.glsl"
 #include "/include/lighting/shadows.glsl"
+#include "/include/lighting/ao.glsl"
 
 // ─── Block-light color ───────────────────────────────────────────────────────
 vec3 blocklight_color() {
@@ -81,12 +82,11 @@ LightingResult compute_lighting(
 
     // ── Sun / moon direct lighting ──
     // Sun/moon irradiance scale
-    float isDay = float(sunAngle < 0.5);
-    vec3  sun_color = mix(
-        srgb_to_linear(vec3(MOON_COLOR_R, MOON_COLOR_G, MOON_COLOR_B)) * MOON_BRIGHTNESS,
-        srgb_to_linear(vec3(SUN_COLOR_R,  SUN_COLOR_G,  SUN_COLOR_B )) * SUN_BRIGHTNESS,
-        isDay
-    );
+    bool isDay = sunAngle < 0.5;
+    // Use noon constants for base sunlight/moonlight in block shading
+    vec3 direct_light_color = isDay ?
+        srgb_to_linear(vec3(SUN_NR,  SUN_NG,  SUN_NB )) * SUN_I :
+        srgb_to_linear(vec3(MOON_R, MOON_G, MOON_B)) * MOON_I;
 
     // Shadow
     float sss_depth    = 0.0;
@@ -103,18 +103,18 @@ LightingResult compute_lighting(
     // BRDF
     BRDFResult brdf = evaluate_brdf(albedo, f0, roughness, metalness, L, V, normal);
 
-    vec3 direct = (brdf.diffuse * NoL + brdf.specular * NoL) * sun_color * shadows * PI;
+    vec3 direct = (brdf.diffuse * NoL + brdf.specular * NoL) * direct_light_color * shadows * PI;
 
     // ── SSS backlight ──
     vec3 sss = sss_transmittance(sss_amount, sss_depth, subsurface_color)
-              * sun_color * shadows;
+              * direct_light_color * shadows;
     color += sss;
 
     // ── AO ──
     float ao = compute_ao(screen_pos, view_pos, normal, ao_dither);
 
     // ── Sky ambient ──
-    vec3 sky   = sky_irradiance(normal, sky_map) * SKY_BRIGHTNESS;
+    vec3 sky   = sky_irradiance(normal, sky_map) * SKYLIGHT_I;
     sky       *= skylight * skylight; // lightmap-based sky falloff
 
     // Ambient diffuse
@@ -124,7 +124,7 @@ LightingResult compute_lighting(
     vec3 R    = reflect(-V, normal);
     float NdotV = max(dot(normal, V), EPS);
     vec3  fenv = fresnel_schlick_roughness(f0, NdotV, roughness);
-    vec3  ambient_spec = sky_irradiance(R, sky_map) * fenv * SKY_BRIGHTNESS * ao;
+    vec3  ambient_spec = sky_irradiance(R, sky_map) * fenv * SKYLIGHT_I * ao;
 
     color += direct;
     color += ambient_diff;

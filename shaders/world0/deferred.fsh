@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world0/deferred.fsh
@@ -6,6 +7,7 @@
 ================================================================================
 */
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/sky/atmosphere.glsl"
 #include "/include/sky/stars.glsl"
 #include "/include/sky/clouds.glsl"
@@ -42,7 +44,7 @@ void main() {
             cameraPosition,
             world_dir,
             sun_dir_w,
-            vec3(SUN_COLOR_R, SUN_COLOR_G, SUN_COLOR_B) * SUN_BRIGHTNESS
+            sun_color(sun_dir_w)
         );
 #ifdef CLOUDS_CUMULUS
         sky = sky * clouds.cumulus.a + clouds.cumulus.rgb;

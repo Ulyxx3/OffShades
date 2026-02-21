@@ -9,6 +9,24 @@
 #define UTILITY_MATH_INCLUDED
 
 // ============================================================
+//   Math Utilities
+// ============================================================
+
+float sqr(float x) { return x * x; }
+vec2  sqr(vec2  x) { return x * x; }
+vec3  sqr(vec3  x) { return x * x; }
+vec4  sqr(vec4  x) { return x * x; }
+
+float pow2(float x) { return x * x; }
+float pow3(float x) { return x * x * x; }
+float pow4(float x) { float x2 = x * x; return x2 * x2; }
+
+float pow5(float x) {
+    float x2 = x * x;
+    return x2 * x2 * x;
+}
+
+// ============================================================
 //   Hash Functions
 // ============================================================
 
@@ -24,17 +42,34 @@ float hash1(vec3 p) {
     return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453123);
 }
 
+float hash12(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+vec2 hash22(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.xx + p3.yz) * p3.zy);
+}
+
 vec2 hash2(vec2 p) {
     p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
     return fract(sin(p) * 43758.5453123);
 }
 
-vec3 hash3(vec3 p) {
+float hash13(vec3 p) {
+    p  = fract(p * 0.1031);
+    p += dot(p, p.zyx + 31.32);
+    return fract((p.x + p.y) * p.z);
+}
+
+vec3 hash33(vec3 p) {
     p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
              dot(p, vec3(269.5, 183.3, 246.1)),
              dot(p, vec3(113.5, 271.9, 124.6)));
     return fract(sin(p) * 43758.5453123);
 }
+
 
 // IGN (Interleaved Gradient Noise) — good for temporal sampling
 float ign(vec2 coord) {

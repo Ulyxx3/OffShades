@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world0/composite.fsh
@@ -6,6 +7,7 @@
 ================================================================================
 */
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/utility/encoding.glsl"
 #include "/include/water/water.glsl"
 #include "/include/water/underwater.glsl"
@@ -35,7 +37,7 @@ void main() {
 
     // Sun/sky colors
     vec3  sun_dir_w = normalize((gbufferModelViewInverse * vec4(sun_dir, 0.0)).xyz);
-    vec3  sun_color = srgb_to_linear(vec3(SUN_COLOR_R, SUN_COLOR_G, SUN_COLOR_B)) * SUN_BRIGHTNESS;
+    vec3  sun_color = sun_color(sun_dir_w);
     vec3  sky_irr   = texture(colortex4, v_uv * 0.1).rgb;
 
     vec3  view_pos  = screen_to_view(v_uv, transp_depth);

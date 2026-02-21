@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world1/deferred.fsh
@@ -10,6 +11,7 @@
 #define WORLD_END
 #include "/include/global.glsl"
 #include "/include/utility/encoding.glsl"
+#include "/include/utility/depth.glsl"
 #include "/include/misc/end.glsl"
 
 varying vec2 v_uv;

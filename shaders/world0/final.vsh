@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world0/final.vsh */
 #include "/include/global.glsl"
 varying vec2 v_uv;

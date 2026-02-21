@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world0/gbuffers_damagedblock.vsh */
 #include "/include/global.glsl"
 varying vec2 v_uv; varying vec4 v_color;

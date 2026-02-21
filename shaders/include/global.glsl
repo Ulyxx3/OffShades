@@ -84,7 +84,7 @@ uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 
-uniform sampler2DShadow shadowtex0;
+uniform sampler2D       shadowtex0;
 uniform sampler2DShadow shadowtex1;
 uniform sampler2D       shadowcolor0;
 uniform sampler2D       shadowcolor1;
@@ -129,7 +129,8 @@ uniform float wetness;
 uniform float thunderStrength;
 
 uniform float sunAngle;
-uniform float shadowDistance;
+// Note: shadowDistance is declared as const float in settings.glsl (Iris built-in convention)
+
 
 uniform ivec2  eyeBrightness;
 uniform ivec2  eyeBrightnessSmooth;
@@ -189,5 +190,24 @@ uniform float biome_may_snow;
 
 // Luminance (BT.709)
 #define luminance(c) dot(c, vec3(0.2126, 0.7152, 0.0722))
+
+// ─── Global Sun/Moon Color ───────────────────────────────────────────────────
+vec3 sun_color(vec3 sun_dir_w) {
+    if (sun_dir_w.y > 0.0) {
+        // Day: blend between morning, noon, and evening
+        vec3 color_m = srgb_to_linear(vec3(SUN_MR, SUN_MG, SUN_MB)) * SUN_I;
+        vec3 color_n = srgb_to_linear(vec3(SUN_NR, SUN_NG, SUN_NB)) * SUN_I;
+        vec3 color_e = srgb_to_linear(vec3(SUN_ER, SUN_EG, SUN_EB)) * SUN_I;
+        
+        // Simple blend based on time variables (injected by shaders.properties)
+        return color_m * time_sunrise + color_n * time_noon + color_e * time_sunset;
+    } else {
+        // Night: Moon color
+        return srgb_to_linear(vec3(MOON_R, MOON_G, MOON_B)) * MOON_I;
+    }
+}
+
+#include "/include/utility/math.glsl"
+#include "/include/utility/depth.glsl"
 
 #endif // GLOBAL_INCLUDED

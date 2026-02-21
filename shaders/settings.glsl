@@ -127,9 +127,13 @@ const int   noiseTextureResolution    = 512;
   #define SHADOW_COLOR
   #define SHADOW_VPS
   #define SHADOW_PENUMBRA_SCALE 1.0 // [0.0 0.3 0.5 0.7 1.0 1.3 1.5 2.0]
+  #define SHADOW_BLOCKER_SEARCH_RADIUS 1.0 // [0.5 0.7 1.0 1.5 2.0 3.0]
   #define ENTITY_SHADOWS
 //#define BLOCK_ENTITY_SHADOWS
   #define SSS_STEPS 12 // [4 6 8 10 12 16 20 24]
+  #define SHADOW_PCF_STEPS_MIN 4
+  #define SHADOW_PCF_STEPS_MAX 16
+  #define SHADOW_PCF_STEPS_SCALE 0.75
   #define SHADOW_DEPTH_SCALE 0.2
   #define SHADOW_DISTORTION   0.85
 
@@ -174,7 +178,26 @@ const int   noiseTextureResolution    = 512;
   #define AURORA_CLOUD_LIGHTING 0.40 // [0.00 0.20 0.40 0.60 0.80 1.00]
   #define AURORA_GROUND_LIGHTING 0.10 // [0.00 0.05 0.10 0.20 0.40]
 
-// Stars
+// ============================================================
+//   Water
+// ============================================================
+
+  #define WATER_WAVE_COUNT 8 // [4 6 8 10 12 16]
+  #define WATER_WAVE_AMPLITUDE 1.0 // [0.0 0.25 0.5 0.75 1.0 1.25 1.5 2.0]
+  #define WATER_WAVE_FREQUENCY 1.0 // [0.5 0.75 1.0 1.25 1.5 2.0]
+  #define WATER_WAVE_SPEED 1.0     // [0.25 0.5 0.75 1.0 1.5 2.0]
+  
+  #define WATER_SSR
+  #define WATER_SSR_STEPS 16 // [8 12 16 20 24 32 48 64]
+  #define WATER_ROUGHNESS 0.02 // [0.0 0.01 0.02 0.03 0.05 0.1 0.2]
+  
+  #define WATER_COLOR_R 0.12 // [0.0 0.05 0.12 0.2 0.3 0.5]
+  #define WATER_COLOR_G 0.40 // [0.0 0.15 0.3 0.4 0.5 0.6 0.8]
+  #define WATER_COLOR_B 0.55 // [0.0 0.2 0.4 0.55 0.7 0.8 1.0]
+
+// ============================================================
+//   Stars
+// ============================================================
 
   #define STARS
   #define STARS_INTENSITY 1.00 // [0.00 0.25 0.50 0.75 1.00 1.50 2.00]
@@ -406,6 +429,8 @@ const int   noiseTextureResolution    = 512;
 
   #define BLOOM
   #define BLOOM_INTENSITY 1.00 // [0.00 0.25 0.50 0.75 1.00 1.25 1.50 2.00]
+  #define EXPOSURE 1.0 // [0.5 0.7 0.8 0.9 1.0 1.1 1.2 1.5 2.0]
+  #define TONEMAP_MODE TONEMAP_ACES // [TONEMAP_ACES TONEMAP_REINHARD TONEMAP_UNCHARTED]
 
 //#define DOF
   #define DOF_INTENSITY 1.00 // [0.25 0.50 0.75 1.00 1.25 1.50 2.00]

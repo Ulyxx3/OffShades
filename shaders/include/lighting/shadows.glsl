@@ -72,7 +72,7 @@ float lightmap_shadow(float skylight, float NoL) {
 
 // ─── PCSS Blocker Search ─────────────────────────────────────────────────────
 // Returns (average_blocker_depth, sss_depth_accumulation)
-vec2 blocker_search(vec3 scene_pos, vec3 shadow_clip_pos, float ref_z, float dither, uint steps) {
+vec2 blocker_search(vec3 scene_pos, vec3 shadow_clip_pos, float ref_z, float dither, int steps) {
     float radius = SHADOW_BLOCKER_SEARCH_RADIUS * shadowProjection[0].x;
     mat2  rot    = rotation_matrix(TAU * dither) * radius;
 
@@ -80,7 +80,7 @@ vec2 blocker_search(vec3 scene_pos, vec3 shadow_clip_pos, float ref_z, float dit
     float weight_sum   = 0.0;
     float depth_sss_sum = 0.0;
 
-    for (uint i = 0u; i < steps; ++i) {
+    for (int i = 0; i < steps; ++i) {
         vec2 uv = shadow_clip_pos.xy + rot * blue_noise_disk[i];
         uv /= get_distortion_factor(uv);
         uv  = uv * 0.5 + 0.5;
@@ -112,7 +112,7 @@ vec3 shadow_pcf(vec3 shadow_screen_pos, vec3 shadow_clip_pos,
     float filter_radius   = max(penumbra_size, min_filter_rad);
     float filter_scale    = (filter_radius / min_filter_rad) * (filter_radius / min_filter_rad);
 
-    uint step_count = uint(clamp(float(SHADOW_PCF_STEPS_MIN) + SHADOW_PCF_STEPS_SCALE * filter_scale,
+    int step_count = int(clamp(float(SHADOW_PCF_STEPS_MIN) + SHADOW_PCF_STEPS_SCALE * filter_scale,
                                  float(SHADOW_PCF_STEPS_MIN), float(SHADOW_PCF_STEPS_MAX)));
 
     mat2 rot = rotation_matrix(TAU * dither) * filter_radius;
@@ -122,7 +122,7 @@ vec3 shadow_pcf(vec3 shadow_screen_pos, vec3 shadow_clip_pos,
     float weight_sum = 0.0;
 
     // First 4 samples + optional color
-    for (uint i = 0u; i < 4u; ++i) {
+    for (int i = 0; i < 4; ++i) {
         vec2 offset = rot * blue_noise_disk[i];
         vec2 uv     = shadow_clip_pos.xy + offset;
         uv /= get_distortion_factor(uv);
@@ -151,7 +151,7 @@ vec3 shadow_pcf(vec3 shadow_screen_pos, vec3 shadow_clip_pos,
     if (shadow > 4.0 - EPS) return color;
     if (shadow < EPS)        return vec3(0.0);
 
-    for (uint i = 4u; i < step_count; ++i) {
+    for (int i = 4; i < step_count; ++i) {
         vec2 uv = shadow_clip_pos.xy + rot * blue_noise_disk[i];
         uv /= get_distortion_factor(uv);
         uv  = uv * 0.5 + 0.5;

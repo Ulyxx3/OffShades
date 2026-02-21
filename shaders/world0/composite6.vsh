@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* composite6.vsh — color grading + tonemapping */
 #include "/include/global.glsl"
 varying vec2 v_uv;

@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* composite4.vsh — bloom downsample */
 #include "/include/global.glsl"
 varying vec2 v_uv;

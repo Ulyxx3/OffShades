@@ -1,3 +1,4 @@
+#version 330 compatibility
 /*
 ================================================================================
   OffShades — world0/composite3.fsh
@@ -5,6 +6,7 @@
 ================================================================================
 */
 #include "/include/global.glsl"
+#include "/include/utility/depth.glsl"
 
 varying vec2 v_uv;
 /* DRAWBUFFERS:05 */

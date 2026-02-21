@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* Nether proxy */ #define WORLD_NETHER
 #include "/include/global.glsl"
 attribute vec4 at_tangent;

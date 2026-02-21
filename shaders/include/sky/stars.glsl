@@ -11,6 +11,20 @@
 #include "/include/utility/math.glsl"
 #include "/include/utility/color.glsl"
 
+// ─── Default Star Settings ───────────────────────────────────────────────────
+#ifndef STARS_DENSITY
+  #define STARS_DENSITY    256.0
+#endif
+#ifndef STARS_TWINKLE
+  #define STARS_TWINKLE    0.3
+#endif
+#ifndef STARS_SIZE
+  #define STARS_SIZE       0.04
+#endif
+#ifndef STARS_BRIGHTNESS
+  #define STARS_BRIGHTNESS 2.0
+#endif
+
 // ─── Star field ──────────────────────────────────────────────────────────────
 // Uses a hash-based point process.
 // dir     : normalized view direction in world space

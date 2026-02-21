@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world1/gbuffers_skybasic.fsh — End proxy */
 /* Outputs black; End sky is drawn in deferred.fsh */
 #define WORLD_END

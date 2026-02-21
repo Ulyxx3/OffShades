@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world0/deferred2.vsh — fullscreen quad */
 #include "/include/global.glsl"
 varying vec2 v_uv;

@@ -1,3 +1,4 @@
+#version 330 compatibility
 /* OffShades — world1/composite.vsh — End composite quad */
 #define WORLD_END
 #include "/include/global.glsl"
