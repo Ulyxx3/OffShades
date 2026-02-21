@@ -1,11 +1,12 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.fsh  (Step 2 v4 — distorted shadow)
+// OffShades — gbuffers_terrain.fsh  (Step 2 v5)
 //
-// PCF: fixed 12-sample Poisson disk, NO per-fragment random rotation.
-// Random rotation caused temporal noise ("shimmering") as the sun moved.
-// A fixed pattern gives stable, predictable soft edges.
+// Shadow fixes:
+//  - Back-face geometric culling eliminates diagonal acne on N/S faces
+//  - Tighter near spread for sharper block shadows
+//  - shadowDistance halved to 64 → double effective resolution
 // ─────────────────────────────────────────────────────────────────────────────
 
 in vec2 texCoord;
@@ -36,10 +37,9 @@ const vec2 POISSON[12] = vec2[](
 );
 
 // ── PCF with fixed Poisson disk ───────────────────────────────────────────────
-// spread is in shadow-map UV space (post-distortion, texel units vary)
 float sampleShadowPCF(vec3 shadowCoords, float bias, float spread) {
     float lit   = 0.0;
-    float texel = 1.0 / 4096.0;   // must match shadowMapResolution
+    float texel = 1.0 / 4096.0;  // must match shadowMapResolution
 
     for (int i = 0; i < 12; i++) {
         vec2  offset  = POISSON[i] * texel * spread;
@@ -64,35 +64,43 @@ void main() {
     // ── 3. Shadow ─────────────────────────────────────────────────────────────
     float shadowFactor = 1.0;
     float skyLight     = lmCoord.y;
+    vec3  sunDir       = normalize(sunPosition);
+    float cosTheta     = dot(fragNormal, sunDir);
 
     if (skyLight > 0.8) {
-        // shadowPos.xy already distorted, w=1 for ortho — remap to [0,1]
-        vec3 shadowCoords = shadowPos.xyz * 0.5 + 0.5;
 
-        if (all(greaterThan(shadowCoords, vec3(0.0))) &&
-            all(lessThan(shadowCoords, vec3(1.0)))) {
+        // ── Geometric back-face check ─────────────────────────────────────────
+        // If this fragment faces AWAY from the sun, it's in shadow by geometry.
+        // Skip shadow map sampling entirely — avoids diagonal acne on N/S faces.
+        if (cosTheta <= 0.0) {
+            shadowFactor = 0.0;
+        } else {
+            // Perspective divide (safe even for ortho where w=1)
+            vec3 ndc          = shadowPos.xyz / shadowPos.w;
+            vec3 shadowCoords = ndc * 0.5 + 0.5;
 
-            // Normal bias
-            vec3  sunDir   = normalize(sunPosition);
-            float cosTheta = clamp(dot(fragNormal, sunDir), 0.0, 1.0);
-            float bias     = mix(0.0010, 0.0002, cosTheta);
+            if (all(greaterThan(shadowCoords, vec3(0.0))) &&
+                all(lessThan(shadowCoords, vec3(1.0)))) {
 
-            // Distance-adaptive spread:
-            // Near = 1.5 texels → sharp block shadows
-            // Far  = 5.0 texels → soft natural penumbra
-            float dist   = length(shadowPos.xyz);
-            float spread = mix(1.5, 5.0, clamp(dist / 64.0, 0.0, 1.0));
+                // Normal bias — smaller is ok now that back-faces are culled
+                float bias = mix(0.0006, 0.0001, clamp(cosTheta, 0.0, 1.0));
 
-            shadowFactor = sampleShadowPCF(shadowCoords, bias, spread);
+                // Distance-adaptive spread — tighter near for sharp block shadows
+                // (distance now over 64 blocks instead of 128)
+                float dist   = length(shadowPos.xyz);
+                float spread = mix(1.0, 4.0, clamp(dist / 32.0, 0.0, 1.0));
 
-            // Frustum edge fade
-            vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
-            float edgeFade = smoothstep(0.0, 0.1, min(edgeDist.x, edgeDist.y));
-            shadowFactor   = mix(1.0, shadowFactor, edgeFade);
+                shadowFactor = sampleShadowPCF(shadowCoords, bias, spread);
 
-            // Dusk/dawn fade
-            float strength = smoothstep(0.8, 1.0, skyLight);
-            shadowFactor   = mix(1.0, shadowFactor, strength);
+                // Frustum edge fade
+                vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
+                float edgeFade = smoothstep(0.0, 0.1, min(edgeDist.x, edgeDist.y));
+                shadowFactor   = mix(1.0, shadowFactor, edgeFade);
+
+                // Dusk/dawn fade
+                float strength = smoothstep(0.8, 1.0, skyLight);
+                shadowFactor   = mix(1.0, shadowFactor, strength);
+            }
         }
     }
 
