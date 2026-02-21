@@ -13,8 +13,9 @@ uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
 uniform mat4 gbufferModelViewInverse;
 
-// Sun direction needed to scale the normal offset adaptively
-uniform vec3 sunPosition;
+// shadowLightPosition: the current shadow-casting light (sun by day, moon by night)
+// Always above the horizon — correct regardless of time of day.
+uniform vec3 shadowLightPosition;
 
 out vec2 texCoord;
 out vec4 glColor;
@@ -52,9 +53,9 @@ void main() {
     vec4 viewPos     = gl_ModelViewMatrix * gl_Vertex;
     vec4 worldPos    = gbufferModelViewInverse * viewPos;
 
-    // Sun direction in world space
-    vec3 sunDirWorld = normalize(mat3(gbufferModelViewInverse) * sunPosition);
-    float NdotL      = dot(worldNormal, sunDirWorld);
+    // Shadow-casting light direction in world space (sun or moon)
+    vec3 lightDirWorld = normalize(mat3(gbufferModelViewInverse) * shadowLightPosition);
+    float NdotL        = dot(worldNormal, lightDirWorld);
 
     // Adaptive offset: 0.0 for full-front faces, 0.12 for perpendicular faces
     float offsetScale     = clamp(1.0 - NdotL, 0.0, 1.0);

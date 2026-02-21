@@ -17,8 +17,8 @@ uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D shadowtex0;
 
-// sunPosition is in eye-space — we rotate it to world-space
-uniform vec3 sunPosition;
+// shadowLightPosition: sun by day, moon by night — always above horizon
+uniform vec3 shadowLightPosition;
 uniform mat4 gbufferModelViewInverse;
 
 const int SHADOW_MAP_RES = 4096;  // must match shadowMapResolution
@@ -44,7 +44,7 @@ void main() {
 
     if (isOutdoor) {
         // Current light direction in world space (sun by day, moon by night)
-        vec3 lightDirWorld = normalize(mat3(gbufferModelViewInverse) * sunPosition);
+        vec3 lightDirWorld = normalize(mat3(gbufferModelViewInverse) * shadowLightPosition);
         float cosTheta     = dot(fragNormal, lightDirWorld);
 
         float geoFactor = smoothstep(-0.05, 0.1, cosTheta);
@@ -56,11 +56,9 @@ void main() {
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                // texelFetch = nearest-neighbor, NO bilinear interpolation
-                // texture() with linear filtering was rounding shadow edges
-                ivec2 shadowTexel = ivec2(shadowCoords.xy * float(SHADOW_MAP_RES));
-                float storedZ     = texelFetch(shadowtex0, shadowTexel, 0).r;
-                float hardShadow  = (storedZ > shadowCoords.z - 0.0001) ? 1.0 : 0.0;
+                // Single-sample hard shadow — no blurring
+                float storedZ    = texture(shadowtex0, shadowCoords.xy).r;
+                float hardShadow = (storedZ > shadowCoords.z - 0.0001) ? 1.0 : 0.0;
 
                 // Edge fade at frustum boundary
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
