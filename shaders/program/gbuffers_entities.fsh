@@ -1,4 +1,4 @@
-﻿
+
 // OffShades — gbuffers_entities.fsh
 // Entities (mobs, players, item frames, etc.)
 // Note: Iris injects a hurt-flash tint via gl_Color alpha — we preserve it.
@@ -12,6 +12,7 @@ in vec4 previousPosition;
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
+uniform vec4 entityColor;
 
 /* DRAWBUFFERS:03 */
 layout(location = 0) out vec4 fragColor;
@@ -22,6 +23,9 @@ void main() {
     if (albedo.a < 0.1) discard;
 
     albedo *= glColor;
+
+    // Apply entity damage flash and glowing effect
+    albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.a);
 
     vec3 lighting = texture(lightmap, lmCoord).rgb;
     albedo.rgb *= lighting;

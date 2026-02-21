@@ -1,4 +1,4 @@
-﻿
+
 // OffShades — gbuffers_entities_translucent.fsh
 // Translucent entities: endermen, spiders, bats, some projectiles
 // Identical to gbuffers_entities but keeps partial alpha transparency.
@@ -10,6 +10,7 @@ in vec3 fragNormal;
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
+uniform vec4 entityColor;
 
 /* DRAWBUFFERS:0 */
 out vec4 fragColor;
@@ -18,6 +19,9 @@ void main() {
     vec4 albedo = texture(gtexture, texCoord);
     // No discard — allow transparency for endermen shimmer, bat wings, etc.
     albedo *= glColor;
+
+    // Apply entity damage flash and glowing effect
+    albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.a);
 
     vec3 lighting = texture(lightmap, lmCoord).rgb;
     albedo.rgb *= lighting;

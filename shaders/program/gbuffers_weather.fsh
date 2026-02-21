@@ -1,4 +1,4 @@
-﻿
+
 // OffShades — gbuffers_weather.fsh
 // Rain & snow particles
 

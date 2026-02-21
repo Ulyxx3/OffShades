@@ -1,4 +1,4 @@
-﻿
+
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // OffShades â€” gbuffers_terrain.vsh
 //
@@ -29,6 +29,7 @@ out vec3 fragNormal;
 out vec4 shadowPos;
 out vec4 currentPosition;
 out vec4 previousPosition;
+out vec3 worldPosition;
 
 const float SHADOW_MAP_RES = 8192.0;
 const float SHADOW_DISTORT = 0.08;
@@ -45,6 +46,7 @@ void main() {
     vec4 viewPos  = gl_ModelViewMatrix * gl_Vertex;
     vec4 worldPos = gbufferModelViewInverse * viewPos;
     worldPos.xyz += cameraPosition; // Absolute world coordinates
+    worldPosition = worldPos.xyz;
 
     // Current screen position (un-jittered for velocity)
     vec4 currentProj = gl_ProjectionMatrix * viewPos;

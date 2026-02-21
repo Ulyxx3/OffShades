@@ -1,4 +1,4 @@
-﻿
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OffShades — shadow.fsh
 // Fragment shader for the shadow pass.

@@ -1,4 +1,4 @@
-﻿
+
 // OffShades — gbuffers_block.fsh
 // Block entities: chests, signs, banners, shulker boxes, etc.
 

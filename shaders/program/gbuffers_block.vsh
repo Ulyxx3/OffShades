@@ -1,4 +1,4 @@
-﻿
+
 // OffShades â€” gbuffers_block.vsh
 // Block entities: chests, signs, banners, shulker boxes, etc.
 

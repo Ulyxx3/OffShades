@@ -1,4 +1,4 @@
-﻿
+
 // OffShades â€” gbuffers_entities_translucent.vsh
 // Translucent entities: endermen, spiders, bats, some projectiles
 

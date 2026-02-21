@@ -1,4 +1,4 @@
-﻿
+
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // OffShades â€” gbuffers_water.vsh
 // Vertex shader for translucent geometry (water, stained glass, iceâ€¦).
@@ -18,6 +18,11 @@ out vec3 fragNormal;
 out vec4 currentPosition;
 out vec4 previousPosition;
 
+out vec3 worldPosition;
+flat out int blockId;
+
+attribute vec4 mc_Entity;
+
 uniform int   frameCounter;
 uniform float viewWidth;
 uniform float viewHeight;
@@ -31,6 +36,9 @@ void main() {
     vec4 viewPos  = gl_ModelViewMatrix * gl_Vertex;
     vec4 worldPos = gbufferModelViewInverse * viewPos;
     worldPos.xyz += cameraPosition; // Absolute world coordinates
+    
+    worldPosition = worldPos.xyz;
+    blockId = int(mc_Entity.x);
 
     // Current screen position (un-jittered for velocity)
     vec4 currentProj = gl_ProjectionMatrix * viewPos;

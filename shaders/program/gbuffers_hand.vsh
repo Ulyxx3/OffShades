@@ -1,4 +1,4 @@
-﻿
+
 // OffShades â€” gbuffers_hand.vsh
 // First-person hand & held items (uses same data as terrain)
 

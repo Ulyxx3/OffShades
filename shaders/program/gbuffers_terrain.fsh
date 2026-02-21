@@ -1,4 +1,4 @@
-﻿
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OffShades — gbuffers_terrain.fsh  (Step 3 — clean shadow rewrite)
 //
@@ -14,6 +14,7 @@ in vec3 fragNormal;   // world-space
 in vec4 shadowPos;    // distorted shadow clip coords
 in vec4 currentPosition;
 in vec4 previousPosition;
+in vec3 worldPosition;
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
@@ -22,35 +23,15 @@ uniform sampler2D shadowtex0;
 uniform vec3 shadowLightPosition;
 uniform mat4 gbufferModelViewInverse;
 uniform int  frameCounter;
+uniform float frameTimeCounter;
+
+#include "/include/lighting.glsl"
+#include "/include/shadows.glsl"
+#include "/include/caustics.glsl"
 
 /* DRAWBUFFERS:03 */
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 velocityOut;
-
-// ── Sky-color ambient (matches gbuffers_skybasic palette) ─────────────────────
-vec3 skyAmbientColor(float sunHeight) {
-    float dayFactor     = smoothstep(-0.10, 0.25, sunHeight);
-    float sunriseFactor = pow(max(1.0 - abs(sunHeight) * 3.0, 0.0), 2.0);
-
-    vec3 nightAmb  = vec3(0.04, 0.05, 0.10);
-    vec3 dayAmb    = vec3(0.45, 0.58, 0.85);
-    vec3 sunsetAmb = vec3(0.80, 0.42, 0.18);
-
-    vec3 base = mix(nightAmb, dayAmb, dayFactor);
-    return mix(base, sunsetAmb, sunriseFactor * dayFactor);
-}
-
-vec3 sunColor(float sunHeight) {
-    float dayFactor     = smoothstep(-0.05, 0.25, sunHeight);
-    float sunriseFactor = pow(max(1.0 - abs(sunHeight) * 4.0, 0.0), 2.0);
-
-    vec3 nightCol   = vec3(0.50, 0.55, 0.75);
-    vec3 dayCol     = vec3(1.00, 0.97, 0.90);
-    vec3 sunsetCol  = vec3(1.00, 0.60, 0.20);
-
-    vec3 base = mix(nightCol, dayCol, dayFactor);
-    return mix(base, sunsetCol, sunriseFactor * dayFactor);
-}
 
 void main() {
     // ── 1. Albedo ─────────────────────────────────────────────────────────────
@@ -85,40 +66,10 @@ void main() {
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                // ── TAA Dithered PCF ────────────────────────────────────────────────
-                // Hash function for random rotation per-pixel, shifting every frame
                 vec2  fragCoord = gl_FragCoord.xy;
                 float dither    = fract(sin(dot(fragCoord + float(frameCounter)*17.13, vec2(12.9898, 78.233))) * 43758.5453);
-                float angle     = dither * 6.2831853;
-                float s         = sin(angle);
-                float c         = cos(angle);
-                mat2  rot       = mat2(c, -s, s, c);
 
-                const vec2 POISSON_4[4] = vec2[](
-                    vec2(-0.942, -0.316),
-                    vec2( 0.316, -0.942),
-                    vec2( 0.942,  0.316),
-                    vec2(-0.316,  0.942)
-                );
-
-                const float BIAS     = 0.0002;
-                float shadowSpread   = 1.5 / 8192.0; // Very tight spread (1.5 texels)
-                float accumulatedVis = 0.0;
-
-                for (int i = 0; i < 4; i++) {
-                    vec2 off = rot * POISSON_4[i] * shadowSpread;
-                    float sz = texture(shadowtex0, shadowCoords.xy + off).r;
-                    accumulatedVis += (sz > shadowCoords.z - BIAS) ? 0.25 : 0.0;
-                }
-                
-                float inLight = accumulatedVis;
-
-                // Smooth fade at shadow frustum edge
-                vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
-                float edgeFade = smoothstep(0.0, 0.1, min(edgeDist.x, edgeDist.y));
-                inLight = mix(1.0, inLight, edgeFade);
-
-                shadowFactor = mix(0.0, inLight, geoFactor);
+                shadowFactor = getShadow(shadowtex0, shadowCoords, geoFactor, dither);
             } else {
                 shadowFactor = geoFactor;
             }
@@ -136,6 +87,13 @@ void main() {
     float lightLevel = mix(0.40, 1.0, shadowFactor);
 
     albedo.rgb *= lightmapColor * lightLevel * lightTint;
+    
+    if (isOutdoor && shadowFactor > 0.05) {
+        float caustic = getCaustics(worldPosition, frameTimeCounter);
+        vec3 causticColor = vec3(0.8, 0.95, 1.0) * caustic * 1.5; // Bright cyan-blue bands
+        albedo.rgb += causticColor * albedo.rgb;
+    }
+
     fragColor = albedo;
 
     // ── 6. Velocity Output ────────────────────────────────────────────────────

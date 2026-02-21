@@ -1,4 +1,4 @@
-﻿
+
 // OffShades â€” gbuffers_entities.vsh
 // Entities (mobs, players, item frames, etc.)
 

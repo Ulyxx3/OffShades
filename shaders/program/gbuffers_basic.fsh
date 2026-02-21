@@ -1,4 +1,4 @@
-﻿
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OffShades — gbuffers_basic.fsh
 // Fragment shader for basic geometry.

@@ -1,4 +1,4 @@
-﻿
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OffShades — final.fsh
 // Reads the final TAA output buffer and applies tonemapping before screen.

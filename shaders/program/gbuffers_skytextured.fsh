@@ -1,4 +1,4 @@
-﻿
+
 // OffShades — gbuffers_skytextured.fsh
 // Textured sky objects: sun disc, moon disc, stars billboard
 

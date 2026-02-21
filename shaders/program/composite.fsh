@@ -1,4 +1,4 @@
-﻿
+
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // OffShades â€” composite.fsh (TAA Pass)
 //
@@ -22,7 +22,11 @@ uniform sampler2D colortex1; // History Ping
 uniform sampler2D colortex2; // History Pong
 
 uniform int  frameCounter;
+uniform float frameTimeCounter;
 uniform vec2 texelSize; // 1.0 / vec2(viewWidth, viewHeight)
+uniform int isEyeInWater;
+uniform sampler2D depthtex0;
+uniform mat4 gbufferProjectionInverse;
 
 #include "/include/taa.glsl"
 
@@ -57,8 +61,34 @@ void main() {
     vec2 jitter     = getJitter(frameCounter) * texelSize * 2.0;
     vec2 unjittered = texCoord - jitter * 0.5; // NDC to UV scale
 
-    // 1. Current frame color (using unjittered coords to avoid blur)
-    vec3 currentColor = texture(colortex0, unjittered).rgb;
+    // 1. Current frame color
+    vec2 sampleCoords = unjittered;
+    
+    if (isEyeInWater == 1) {
+        // Screen-space refraction (distortion)
+        vec2 distortion = vec2(
+            sin(unjittered.y * 50.0 + frameTimeCounter * 3.0),
+            cos(unjittered.x * 50.0 + frameTimeCounter * 2.5)
+        ) * 0.003;
+        sampleCoords = clamp(unjittered + distortion, 0.001, 0.999);
+    }
+
+    vec3 currentColor = texture(colortex0, sampleCoords).rgb;
+    
+    // 1.5 Underwater Fog / Absorption
+    if (isEyeInWater == 1) {
+        float rawDepth = texture(depthtex0, sampleCoords).r;
+        vec4 ndc = vec4(0.0, 0.0, 2.0 * rawDepth - 1.0, 1.0);
+        vec4 view = gbufferProjectionInverse * ndc;
+        float viewDist = -view.z / view.w;
+        
+        vec3 waterAmbient = vec3(0.02, 0.25, 0.45);
+        float fogDensity = 0.05;
+        float fogFactor = exp(-viewDist * fogDensity);
+        
+        // At max depth, it fades entirely to the deep water color
+        currentColor = mix(waterAmbient, currentColor, clamp(fogFactor, 0.0, 1.0));
+    }
     
     // 2. Velocity
     vec2 velocity = texture(colortex3, unjittered).xy;
