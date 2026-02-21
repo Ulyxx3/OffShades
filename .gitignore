@@ -1,10 +1,9 @@
-# System files
-.DS_Store
-Thumbs.db
-
-# IDE / editor
+# Editor
 .vscode/
 .idea/
+
+# Ignore photon shaders reference folder
+inspiration shaders/
 *.suo
 *.user
 
