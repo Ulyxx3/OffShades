@@ -24,35 +24,6 @@ uniform mat4 gbufferModelViewInverse;
 // worldTime: 0–12000 = day, 12000–24000 = night
 uniform int worldTime;
 
-// ── Fixed 12-sample Poisson disk ─────────────────────────────────────────────
-const vec2 POISSON[12] = vec2[](
-    vec2(-0.326212, -0.405805),
-    vec2(-0.840144, -0.073580),
-    vec2(-0.695914,  0.457137),
-    vec2(-0.203345,  0.620716),
-    vec2( 0.962340, -0.194983),
-    vec2( 0.473434, -0.480026),
-    vec2( 0.519456,  0.767022),
-    vec2( 0.185461, -0.893124),
-    vec2( 0.507431,  0.064425),
-    vec2( 0.896420,  0.412458),
-    vec2(-0.321940, -0.932615),
-    vec2(-0.791559, -0.597710)
-);
-
-float sampleShadowPCF(vec3 shadowCoords, float spread) {
-    float lit   = 0.0;
-    float texel = 1.0 / 4096.0;
-    // Tiny epsilon to handle floating point self-comparison
-    float eps   = 0.0001;
-    for (int i = 0; i < 12; i++) {
-        vec2  offset  = POISSON[i] * texel * spread;
-        float storedZ = texture(shadowtex0, shadowCoords.xy + offset).r;
-        lit += (storedZ > shadowCoords.z - eps) ? 1.0 : 0.0;
-    }
-    return lit / 12.0;
-}
-
 /* DRAWBUFFERS:0 */
 out vec4 fragColor;
 
@@ -85,31 +56,25 @@ void main() {
         float geoFactor = smoothstep(-0.05, 0.1, cosTheta);
 
         if (geoFactor > 0.001) {
-            // Only sample shadow map if the face is at least partially lit
             vec3 ndc          = shadowPos.xyz / shadowPos.w;
             vec3 shadowCoords = ndc * 0.5 + 0.5;
 
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                float dist   = length(shadowPos.xyz);
-                float spread = mix(0.5, 3.0, clamp(dist / 20.0, 0.0, 1.0));
+                // ── Hard shadow — single sample, no blur ─────────────────────
+                // 4096px over 64 blocks with 0.08 distortion gives very crisp
+                // block-accurate shadows near the player.
+                float storedZ = texture(shadowtex0, shadowCoords.xy).r;
+                float hardShadow = (storedZ > shadowCoords.z - 0.0001) ? 1.0 : 0.0;
 
-                float pcf = sampleShadowPCF(shadowCoords, spread);
-
-                // Edge fade at frustum bounds
+                // Edge fade at frustum boundary
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
                 float edgeFade = smoothstep(0.0, 0.15, min(edgeDist.x, edgeDist.y));
-                pcf = mix(1.0, pcf, edgeFade);
+                hardShadow = mix(1.0, hardShadow, edgeFade);
 
-                // Distance fade: shadow melts into full-lit beyond 48 blocks.
-                // At far distances the shadow map texel is too large for the
-                // fixed normal offset to prevent acne — fade avoids the problem.
-                float distFade = 1.0 - smoothstep(36.0, 56.0, dist);
-                pcf = mix(1.0, pcf, distFade);
-
-                // Blend shadow map result with geometric attenuation
-                shadowFactor = mix(0.0, pcf, geoFactor);
+                // Blend with geometric back-face attenuation
+                shadowFactor = mix(0.0, hardShadow, geoFactor);
             } else {
                 // Outside frustum — pass through geometric attenuation only
                 shadowFactor = geoFactor;
