@@ -82,8 +82,13 @@ void main() {
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
+                // Adaptive bias: near = tiny (normal offset suffices),
+                // far = larger (texels grow with distance due to distortion).
+                float dist         = length(shadowPos.xyz);
+                float adaptiveBias = mix(0.0001, 0.0008, clamp(dist / 48.0, 0.0, 1.0));
+
                 float storedZ    = texture(shadowtex0, shadowCoords.xy).r;
-                float hardShadow = (storedZ > shadowCoords.z - 0.0001) ? 1.0 : 0.0;
+                float hardShadow = (storedZ > shadowCoords.z - adaptiveBias) ? 1.0 : 0.0;
 
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
                 float edgeFade = smoothstep(0.0, 0.15, min(edgeDist.x, edgeDist.y));
