@@ -33,3 +33,5 @@ void main() {
     gbuf2 = vec4(encode_normal(normal), blocklight, 0.0);
     gbuf3 = vec4(max(spec.r, 0.8), spec.g, 0.04, spec.a);
 }
+
+

@@ -7,3 +7,5 @@ void main() {
     // Beacon beam shows as bright colored column
     color_out = vec4(v_color.rgb * 3.0, v_color.a * 0.7);
 }
+
+

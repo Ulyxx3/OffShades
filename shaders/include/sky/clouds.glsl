@@ -160,3 +160,5 @@ CloudResult render_clouds(vec3 ro, vec3 rd, vec3 sun_dir, vec3 sun_color) {
 }
 
 #endif // CLOUDS_INCLUDED
+
+

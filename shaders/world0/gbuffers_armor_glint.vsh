@@ -6,3 +6,5 @@ void main() {
     v_uv = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     v_color = gl_Color; gl_Position = ftransform();
 }
+
+

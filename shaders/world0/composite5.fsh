@@ -16,3 +16,5 @@ void main() {
     vec3 upsampled = kawase_upsample(colortex11, v_uv, view_pixel_size * 2.0);
     bloom_out = vec4(upsampled, 1.0);
 }
+
+

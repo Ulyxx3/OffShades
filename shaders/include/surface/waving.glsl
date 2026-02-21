@@ -95,3 +95,5 @@ vec3 waving_offset(int entity_id, vec3 world_pos, float uv_y) {
 }
 
 #endif // WAVING_INCLUDED
+
+

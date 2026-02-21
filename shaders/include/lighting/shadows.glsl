@@ -261,3 +261,5 @@ vec3 calculate_shadows(
 }
 
 #endif // SHADOWS_INCLUDED
+
+

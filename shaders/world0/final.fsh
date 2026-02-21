@@ -85,11 +85,8 @@ void main() {
     // Vignette
 #ifdef VIGNETTE
     vec2  vc = v_uv * 2.0 - 1.0;
-    #ifndef VIGNETTE_FALLOFF
-    #define VIGNETTE_FALLOFF 1.0
-    #endif
-    float vg = 1.0 - VIGNETTE_INTENSITY * pow(dot(vc * VIGNETTE_FALLOFF, vc), 1.5);
-    color   *= vg;
+    float vg = 1.0 - VIGNETTE_INTENSITY * length(vc) * 0.5;
+    color   *= max(vg, 0.0);
 #endif
 
     // Film grain
@@ -103,3 +100,5 @@ void main() {
 
     gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
 }
+
+

@@ -502,3 +502,5 @@ const int   noiseTextureResolution    = 512;
   #define DITHERED_TRANSLUCENCY_FALLBACK
 
 #endif // SETTINGS_INCLUDED
+
+

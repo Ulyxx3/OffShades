@@ -7,3 +7,5 @@ void main() {
     // Nether has no sky — output the nether sky color from the deferred pass
     color_out = vec4(0.0, 0.0, 0.0, 1.0);
 }
+
+

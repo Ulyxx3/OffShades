@@ -39,3 +39,5 @@ void main() {
     // Store cumulus scatter + transmittance (cirrus handled in composite)
     cloud_out = clouds.cumulus;
 }
+
+

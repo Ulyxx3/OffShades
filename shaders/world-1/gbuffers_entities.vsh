@@ -23,3 +23,5 @@ void main() {
     // No TAA jitter in Nether (skylight = 0 anyway)
     gl_Position = ftransform();
 }
+
+

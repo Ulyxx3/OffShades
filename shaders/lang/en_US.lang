@@ -324,3 +324,5 @@ option.CUSTOM_SKY          = Custom Sky
 option.CUSTOM_SKY_BRIGHTNESS = Custom Sky Brightness
 option.ENCHANTMENT_GLINT_BRIGHTNESS = Enchant Glint
 option.DITHERED_TRANSLUCENCY_FALLBACK = Dithered Translucency
+
+

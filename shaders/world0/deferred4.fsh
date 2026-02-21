@@ -101,3 +101,5 @@ void main() {
 
     scene_color = vec4(lit.color, 1.0);
 }
+
+

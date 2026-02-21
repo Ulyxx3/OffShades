@@ -41,3 +41,5 @@ void main() {
 
     scene_out = vec4(end_shade(albedo, view_normal, emissive, blocklight), 1.0);
 }
+
+

@@ -39,3 +39,5 @@ void main() {
     gl_Position   = gbufferProjection * view_pos;
     gl_Position.xy += taa_offset * gl_Position.w;
 }
+
+

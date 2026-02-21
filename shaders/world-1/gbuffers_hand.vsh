@@ -8,3 +8,5 @@ void main() {
     v_color = gl_Color; v_normal = normalize(gl_NormalMatrix * gl_Normal);
     gl_Position = ftransform();
 }
+
+

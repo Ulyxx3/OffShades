@@ -14,7 +14,7 @@
 
 varying vec2 v_uv;
 
-/* DRAWBUFFERS:04 */
+/* RENDERTARGETS: 0,4 */
 layout(location = 0) out vec4 scene_color;
 layout(location = 1) out vec4 sky_map_out;
 
@@ -68,3 +68,5 @@ void main() {
         sky_map_out = vec4(irr, 1.0);
     }
 }
+
+

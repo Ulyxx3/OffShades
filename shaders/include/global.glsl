@@ -54,7 +54,7 @@
 // colortex10 : Cloud render (temporal upscaling buffer B)
 // colortex11 : Bloom chain
 // colortex12 : Misc scratch
-// colortex13 : Translucent data (water, glass, particles)
+// colortex7 : Translucent data (water, glass, particles)
 // depthtex0  : Solid depth
 // depthtex1  : Translucent depth (water, glass)
 // shadowtex0 : Shadow map (hard)
@@ -78,7 +78,6 @@ uniform sampler2D colortex9;
 uniform sampler2D colortex10;
 uniform sampler2D colortex11;
 uniform sampler2D colortex12;
-uniform sampler2D colortex13;
 
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
@@ -211,3 +210,5 @@ vec3 sun_color(vec3 sun_dir_w) {
 #include "/include/utility/depth.glsl"
 
 #endif // GLOBAL_INCLUDED
+
+

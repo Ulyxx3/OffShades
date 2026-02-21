@@ -30,17 +30,21 @@ void main() {
     float skylight  = float(eyeBrightnessSmooth.y) / 240.0;
     float cloud_shadow = texture(colortex9, v_uv).a;
 
-    scene = apply_overworld_fog(
-        scene,
-        cameraPosition,
-        normalize(view_pos),
-        view_dist,
-        sun_dir_w,
-        sky_irr,
-        sun_color,
-        cloud_shadow,
-        skylight
-    );
+    if (depth < 1.0 - 1e-5) {
+        scene = apply_overworld_fog(
+            scene,
+            cameraPosition,
+            normalize(view_pos),
+            view_dist,
+            sun_dir_w,
+            sky_irr,
+            sun_color,
+            cloud_shadow,
+            skylight
+        );
+    }
 
     scene_out = vec4(scene, 1.0);
 }
+
+

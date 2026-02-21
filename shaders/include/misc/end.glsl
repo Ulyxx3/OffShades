@@ -78,3 +78,5 @@ vec3 end_shade(vec3 albedo, vec3 normal, float emission, float blocklight) {
 }
 
 #endif // END_INCLUDED
+
+

@@ -103,7 +103,7 @@ LightingResult compute_lighting(
     // BRDF
     BRDFResult brdf = evaluate_brdf(albedo, f0, roughness, metalness, L, V, normal);
 
-    vec3 direct = (brdf.diffuse * NoL + brdf.specular * NoL) * direct_light_color * shadows * PI;
+    vec3 direct = (brdf.diffuse * NoL + brdf.specular * NoL) * direct_light_color * shadows;
 
     // ── SSS backlight ──
     vec3 sss = sss_transmittance(sss_amount, sss_depth, subsurface_color)
@@ -145,3 +145,5 @@ LightingResult compute_lighting(
 }
 
 #endif // LIGHTING_INCLUDED
+
+

@@ -67,3 +67,5 @@ vec3 nether_shade(vec3 albedo, float emission, float blocklight) {
 }
 
 #endif // NETHER_INCLUDED
+
+

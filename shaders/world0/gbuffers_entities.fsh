@@ -45,3 +45,5 @@ void main() {
     gbuf2 = vec4(encode_normal(normal), blocklight, 0.0);
     gbuf3 = vec4(roughness, metalness, 0.04, emissive);
 }
+
+

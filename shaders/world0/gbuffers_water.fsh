@@ -20,10 +20,10 @@ varying vec3  v_bitangent;
 varying vec3  v_world_pos;
 varying float v_is_water;
 
-/* DRAWBUFFERS:013 */
-layout(location = 0) out vec4 gbuf0; // scene color (blended over existing)
-layout(location = 1) out vec4 gbuf1; // albedo + skylight
-layout(location = 2) out vec4 gbuf2; // normal + lightmap
+/* DRAWBUFFERS:712 */
+layout(location = 0) out vec4 gbuf0; // scene color -> colortex7 (translucent map)
+layout(location = 1) out vec4 gbuf1; // albedo + skylight -> colortex1
+layout(location = 2) out vec4 gbuf2; // normal + lightmap -> colortex2
 
 void main() {
     vec4 base = texture(gtexture, v_uv) * v_color;
@@ -45,7 +45,7 @@ void main() {
     } else {
         // Glass or other translucent
         normal    = normalize(v_normal);
-        roughness = 0.05;
+        roughness = 0.5;
     }
 
     float skylight   = v_lm.y;
@@ -55,3 +55,6 @@ void main() {
     gbuf1 = vec4(base.rgb, skylight);
     gbuf2 = vec4(encode_normal(normal), blocklight, roughness);
 }
+
+
+

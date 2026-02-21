@@ -133,3 +133,5 @@ float bayer8x8(ivec2 coord) {
 }
 
 #endif // UTILITY_ENCODING_INCLUDED
+
+

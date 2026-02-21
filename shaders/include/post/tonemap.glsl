@@ -41,8 +41,9 @@ vec3 purkinje_shift(vec3 color, float night_factor) {
 
 // ─── Color grading ────────────────────────────────────────────────────────────
 vec3 color_grade(vec3 color) {
-    // Brightness / Contrast
-    color = (color - 0.5) * (GRADE_CONTRAST + 1.0) + 0.5;
+    // Brightness / Contrast (HDR safe pivoting around 0.18 linear)
+    color = max(vec3(0.0), color); // Prevent NaNs
+    color = pow(color / 0.18, vec3(GRADE_CONTRAST)) * 0.18;
     color *= GRADE_BRIGHTNESS;
 
     // Saturation
@@ -81,3 +82,5 @@ vec3 apply_tonemap(vec3 color, float night_factor) {
 }
 
 #endif // TONEMAP_INCLUDED
+
+

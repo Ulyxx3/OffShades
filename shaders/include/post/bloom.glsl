@@ -53,3 +53,5 @@ vec3 apply_bloom(vec3 scene_color, vec3 bloom_color) {
 }
 
 #endif // BLOOM_INCLUDED
+
+

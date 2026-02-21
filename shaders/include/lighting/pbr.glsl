@@ -88,7 +88,7 @@ BRDFResult evaluate_brdf(
     float G    = ggx_smith(NoL, NoV, max(roughness * roughness, 0.002));
 
     vec3 spec  = D * G * F;
-    vec3 diff  = (1.0 - F) * (1.0 - metalness) * albedo * burley_diffuse(NoL, NoV, LoH, roughness * roughness) * PI;
+    vec3 diff  = (1.0 - F) * (1.0 - metalness) * albedo * burley_diffuse(NoL, NoV, LoH, roughness * roughness);
 
     BRDFResult result;
     result.diffuse  = diff;
@@ -103,3 +103,5 @@ vec3 ior_to_f0(float ior) {
 }
 
 #endif // PBR_INCLUDED
+
+

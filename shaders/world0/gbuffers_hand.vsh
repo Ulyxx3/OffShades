@@ -18,3 +18,5 @@ void main() {
     gl_Position = ftransform();
     // No TAA jitter for hand — avoids ghosting
 }
+
+

@@ -50,3 +50,5 @@ void main() {
     scene_out   = vec4(current, 1.0);
     taa_history = vec4(current, 1.0);
 }
+
+

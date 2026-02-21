@@ -14,3 +14,5 @@ void main() {
     // Output sky blue as a placeholder; deferred.fsh overwrites this.
     color_out = vec4(0.0, 0.0, 0.0, 1.0);
 }
+
+

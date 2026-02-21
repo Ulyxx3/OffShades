@@ -17,3 +17,5 @@ void main() {
     // Discard vanilla sun/moon quads — atmosphere.glsl renders them procedurally
     discard;
 }
+
+

@@ -89,3 +89,5 @@ vec3 render_stars(vec3 dir, float night_factor) {
 }
 
 #endif // STARS_INCLUDED
+
+

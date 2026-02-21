@@ -154,3 +154,5 @@ vec3 sky_color(vec3 rd, vec3 sun_dir, vec3 moon_dir) {
 }
 
 #endif // ATMOSPHERE_INCLUDED
+
+

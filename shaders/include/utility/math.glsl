@@ -58,6 +58,7 @@ vec2 hash2(vec2 p) {
 }
 
 float hash13(vec3 p) {
+    p  = mod(p, 1000000.0);
     p  = fract(p * 0.1031);
     p += dot(p, p.zyx + 31.32);
     return fract((p.x + p.y) * p.z);
@@ -221,3 +222,5 @@ float draine_phase(float cos_theta, float g, float d) {
 }
 
 #endif // UTILITY_MATH_INCLUDED
+
+

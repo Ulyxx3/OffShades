@@ -16,3 +16,8 @@ void main() {
     if (col.a < 0.05) discard;
     color_out = col;
 }
+
+
+
+
+

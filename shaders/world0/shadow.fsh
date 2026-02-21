@@ -25,3 +25,5 @@ void main() {
     // Colored translucent shadows (tint stored in shadowcolor0)
     shadow_out = albedo;
 }
+
+

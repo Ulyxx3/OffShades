@@ -128,3 +128,5 @@ vec3 apply_overworld_fog(
 }
 
 #endif // FOG_INCLUDED
+
+

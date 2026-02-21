@@ -17,3 +17,5 @@ void main() {
     bloom_out = vec4(kawase_downsample(colortex0, v_uv, view_pixel_size * 2.0)
                      * float(luminance(color) > 0.0), 1.0);
 }
+
+

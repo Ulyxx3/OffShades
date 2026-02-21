@@ -2,7 +2,7 @@
 /*
 ================================================================================
   OffShades — world0/composite.fsh
-  Translucent blending pass: blends water/glass layers in colortex13 over
+  Translucent blending pass: blends water/glass layers in colortex7 over
   the opaque deferred-lit scene in colortex0. Applies water SSR + refraction.
 ================================================================================
 */
@@ -19,8 +19,29 @@ layout(location = 0) out vec4 scene_out;
 
 void main() {
     vec4 scene = texture(colortex0, v_uv);
-    float solid_depth  = texture(depthtex0, v_uv).r;
-    float transp_depth = texture(depthtex1, v_uv).r;
+    // depthtex0 contains both opaque + translucent (closest)
+    // depthtex1 contains ONLY opaque geometry
+    float solid_depth  = texture(depthtex1, v_uv).r;
+    float transp_depth = texture(depthtex0, v_uv).r;
+
+    // Sun/sky colors
+    vec3  sun_dir_w = normalize((gbufferModelViewInverse * vec4(sun_dir, 0.0)).xyz);
+    vec3  sun_color = sun_color(sun_dir_w);
+    vec3  sky_irr   = texture(colortex4, v_uv * 0.1).rgb;
+
+    // Underwater fog (needs to apply even if no translucent geometry is here)
+    if (isEyeInWater) {
+        vec3 view_pos  = screen_to_view(v_uv, solid_depth);
+        vec3 world_pos = view_to_scene(view_pos);
+        scene.rgb = apply_underwater(
+            scene.rgb,
+            view_pos,
+            world_pos,
+            sun_dir_w,
+            sun_color,
+            float(eyeBrightnessSmooth.y) / 240.0
+        );
+    }
 
     // No translucent geometry here
     if (transp_depth >= solid_depth - 1e-5) {
@@ -28,24 +49,19 @@ void main() {
         return;
     }
 
-    // Read translucent data from colortex13
-    vec4 transp_data = texture(colortex13, v_uv);
+    // Read translucent data from colortex7
+    vec4 transp_data = texture(colortex7, v_uv);
 
     // Water normal (stored in colortex2 for water pixels, already used in gbuffers_water)
     vec4  gbuf2     = texture(colortex2, v_uv);
     vec3  surf_normal = decode_normal(gbuf2.rg);
-
-    // Sun/sky colors
-    vec3  sun_dir_w = normalize((gbufferModelViewInverse * vec4(sun_dir, 0.0)).xyz);
-    vec3  sun_color = sun_color(sun_dir_w);
-    vec3  sky_irr   = texture(colortex4, v_uv * 0.1).rgb;
 
     vec3  view_pos  = screen_to_view(v_uv, transp_depth);
     vec3  world_pos = view_to_scene(view_pos);
 
     // Detect if surface is water
     float roughness  = gbuf2.a;
-    float is_water   = float(roughness < 0.1);
+    float is_water   = float(roughness < 0.1 && transp_data.a > 0.05);
 
     if (is_water > 0.5) {
         vec3 water_result = shade_water(
@@ -70,17 +86,9 @@ void main() {
         scene.rgb = mix(scene.rgb, transp_data.rgb, transp_data.a);
     }
 
-    // Underwater fog
-    if (isEyeInWater) {
-        scene.rgb = apply_underwater(
-            scene.rgb,
-            view_pos,
-            world_pos,
-            sun_dir_w,
-            sun_color,
-            float(eyeBrightnessSmooth.y) / 240.0
-        );
-    }
+
 
     scene_out = scene;
 }
+
+

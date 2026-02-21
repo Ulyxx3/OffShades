@@ -63,3 +63,5 @@ void main() {
     gbuf2 = vec4(encode_normal(normal), blocklight, float(v_entity_id) / 65536.0);
     gbuf3 = vec4(roughness, metalness, f0, emissive);
 }
+
+

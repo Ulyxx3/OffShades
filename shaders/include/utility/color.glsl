@@ -191,3 +191,5 @@ vec3 apply_purkinje(vec3 color, float night_factor, float intensity) {
 }
 
 #endif // UTILITY_COLOR_INCLUDED
+
+
