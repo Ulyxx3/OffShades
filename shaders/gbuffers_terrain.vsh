@@ -57,9 +57,10 @@ void main() {
     vec3 lightDirWorld = normalize(mat3(gbufferModelViewInverse) * shadowLightPosition);
     float NdotL        = dot(worldNormal, lightDirWorld);
 
-    // Adaptive offset: 0.0 for full-front faces, 0.12 for perpendicular faces
+    // Adaptive offset: 0.0 for front faces, 0.20 for perpendicular faces
+    // 0.20 instead of 0.12 to better handle steep/oblique faces
     float offsetScale     = clamp(1.0 - NdotL, 0.0, 1.0);
-    float normalOffsetDist = 0.12 * offsetScale;
+    float normalOffsetDist = 0.20 * offsetScale;
     vec4 biasedWorldPos   = worldPos + vec4(worldNormal * normalOffsetDist, 0.0);
 
     // Project into shadow space using the offset world position

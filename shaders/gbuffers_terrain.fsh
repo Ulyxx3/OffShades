@@ -87,31 +87,11 @@ void main() {
                 float dist         = length(shadowPos.xyz);
                 float adaptiveBias = mix(0.0001, 0.0008, clamp(dist / 48.0, 0.0, 1.0));
 
-                // ── Angle-adaptive Poisson PCF (8 samples) ──────────────────
-                // Direct (cosTheta~1): spread=0 → hard, crisp block shadows
-                // Oblique (cosTheta~0): spread=6 → blurs aliasing stripes
-                float texel   = 1.0 / 4096.0;
-                float oblique = 1.0 - clamp(cosTheta * 5.0, 0.0, 1.0);
-                float spread  = mix(0.0, 6.0, oblique);
-
-                // 8-point Poisson disk for better coverage than quad
-                const vec2 POISSON8[8] = vec2[](
-                    vec2(-0.7071,  0.0000),
-                    vec2( 0.7071,  0.0000),
-                    vec2( 0.0000, -0.7071),
-                    vec2( 0.0000,  0.7071),
-                    vec2(-0.5000, -0.5000),
-                    vec2( 0.5000, -0.5000),
-                    vec2(-0.5000,  0.5000),
-                    vec2( 0.5000,  0.5000)
-                );
-
-                float hardShadow = 0.0;
-                for (int i = 0; i < 8; i++) {
-                    vec2  off = POISSON8[i] * texel * spread;
-                    float sz  = texture(shadowtex0, shadowCoords.xy + off).r;
-                    hardShadow += (sz > shadowCoords.z - adaptiveBias) ? 0.125 : 0.0;
-                }
+                // ── Exact single-sample shadow ────────────────────────────────
+                // No PCF, no blur — pure shadow map lookup.
+                // Acne prevented by normal offset bias in VSH (0.20 blocks).
+                float storedZ    = texture(shadowtex0, shadowCoords.xy).r;
+                float hardShadow = (storedZ > shadowCoords.z - adaptiveBias) ? 1.0 : 0.0;
 
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
                 float edgeFade = smoothstep(0.0, 0.15, min(edgeDist.x, edgeDist.y));
