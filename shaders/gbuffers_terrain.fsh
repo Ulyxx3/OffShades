@@ -1,10 +1,10 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.fsh  (Step 2 v7)
+// OffShades — gbuffers_terrain.fsh  (Step 2 v8)
 //
-// Bias is now handled by normal offset in the vertex shader.
-// The depth comparison here uses only a tiny epsilon for float precision.
+// Shadows: texelFetch (nearest-neighbor, no bilinear blur) = crisp block edges
+// Night fix: lmCoord.y > 0.5 = outdoors check, works both day AND night
 // ─────────────────────────────────────────────────────────────────────────────
 
 in vec2 texCoord;
@@ -21,8 +21,7 @@ uniform sampler2D shadowtex0;
 uniform vec3 sunPosition;
 uniform mat4 gbufferModelViewInverse;
 
-// worldTime: 0–12000 = day, 12000–24000 = night
-uniform int worldTime;
+const int SHADOW_MAP_RES = 4096;  // must match shadowMapResolution
 
 /* DRAWBUFFERS:0 */
 out vec4 fragColor;
@@ -39,20 +38,15 @@ void main() {
     // ── 3. Shadow ─────────────────────────────────────────────────────────────
     float shadowFactor = 1.0;
 
-    // Day check via worldTime — 23500–24000 and 0–12500 is day/dusk/dawn
-    // This is more reliable than lmCoord.y which doesn't encode time of day
-    bool isDay = (worldTime < 13000 || worldTime > 22500);
+    // Outdoor check: high lmCoord.y = has sky light access = outdoors.
+    // Works both day AND night — shadow map uses moon at night automatically.
+    bool isOutdoor = (lmCoord.y > 0.5);
 
-    if (isDay) {
-        // Sun direction in world space — stable across camera rotations
-        vec3 sunDirWorld = normalize(mat3(gbufferModelViewInverse) * sunPosition);
-        float cosTheta   = dot(fragNormal, sunDirWorld);
+    if (isOutdoor) {
+        // Current light direction in world space (sun by day, moon by night)
+        vec3 lightDirWorld = normalize(mat3(gbufferModelViewInverse) * sunPosition);
+        float cosTheta     = dot(fragNormal, lightDirWorld);
 
-        // ── Smooth geometric attenuation ──────────────────────────────────────
-        // smoothstep creates a soft transition for sides oblique to the sun.
-        // No hard cutoff → no flickering at the perpendicular boundary.
-        // cosTheta < -0.05 → fully in shadow (genuine back face)
-        // cosTheta >  0.1  → full shadow map lighting
         float geoFactor = smoothstep(-0.05, 0.1, cosTheta);
 
         if (geoFactor > 0.001) {
@@ -62,25 +56,22 @@ void main() {
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                // ── Hard shadow — single sample, no blur ─────────────────────
-                // 4096px over 64 blocks with 0.08 distortion gives very crisp
-                // block-accurate shadows near the player.
-                float storedZ = texture(shadowtex0, shadowCoords.xy).r;
-                float hardShadow = (storedZ > shadowCoords.z - 0.0001) ? 1.0 : 0.0;
+                // texelFetch = nearest-neighbor, NO bilinear interpolation
+                // texture() with linear filtering was rounding shadow edges
+                ivec2 shadowTexel = ivec2(shadowCoords.xy * float(SHADOW_MAP_RES));
+                float storedZ     = texelFetch(shadowtex0, shadowTexel, 0).r;
+                float hardShadow  = (storedZ > shadowCoords.z - 0.0001) ? 1.0 : 0.0;
 
                 // Edge fade at frustum boundary
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
                 float edgeFade = smoothstep(0.0, 0.15, min(edgeDist.x, edgeDist.y));
                 hardShadow = mix(1.0, hardShadow, edgeFade);
 
-                // Blend with geometric back-face attenuation
                 shadowFactor = mix(0.0, hardShadow, geoFactor);
             } else {
-                // Outside frustum — pass through geometric attenuation only
                 shadowFactor = geoFactor;
             }
         } else {
-            // Definitely a back face — full shadow, no sampling
             shadowFactor = 0.0;
         }
     }
