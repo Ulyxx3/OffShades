@@ -1,24 +1,30 @@
 #version 330 compatibility
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OffShades — gbuffers_terrain.fsh  (Step 2 v5)
+// OffShades — gbuffers_terrain.fsh  (Step 2 v6)
 //
-// Shadow fixes:
-//  - Back-face geometric culling eliminates diagonal acne on N/S faces
-//  - Tighter near spread for sharper block shadows
-//  - shadowDistance halved to 64 → double effective resolution
+// Key fixes:
+//  - World-space normals + world-space sun direction: stable, no camera drift
+//  - smoothstep back-face attenuation instead of hard cutoff: no flickering
+//  - worldTime check for day/night instead of lmCoord.y (unreliable)
 // ─────────────────────────────────────────────────────────────────────────────
 
 in vec2 texCoord;
 in vec4 glColor;
 in vec2 lmCoord;
-in vec3 fragNormal;
-in vec4 shadowPos;  // already distorted in VSH
+in vec3 fragNormal;   // world-space
+in vec4 shadowPos;    // distorted shadow clip coords
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D shadowtex0;
+
+// sunPosition is in eye-space — we rotate it to world-space
 uniform vec3 sunPosition;
+uniform mat4 gbufferModelViewInverse;
+
+// worldTime: 0–12000 = day, 12000–24000 = night
+uniform int worldTime;
 
 // ── Fixed 12-sample Poisson disk ─────────────────────────────────────────────
 const vec2 POISSON[12] = vec2[](
@@ -36,11 +42,9 @@ const vec2 POISSON[12] = vec2[](
     vec2(-0.791559, -0.597710)
 );
 
-// ── PCF with fixed Poisson disk ───────────────────────────────────────────────
 float sampleShadowPCF(vec3 shadowCoords, float bias, float spread) {
     float lit   = 0.0;
-    float texel = 1.0 / 4096.0;  // must match shadowMapResolution
-
+    float texel = 1.0 / 4096.0;
     for (int i = 0; i < 12; i++) {
         vec2  offset  = POISSON[i] * texel * spread;
         float storedZ = texture(shadowtex0, shadowCoords.xy + offset).r;
@@ -63,49 +67,56 @@ void main() {
 
     // ── 3. Shadow ─────────────────────────────────────────────────────────────
     float shadowFactor = 1.0;
-    float skyLight     = lmCoord.y;
-    vec3  sunDir       = normalize(sunPosition);
-    float cosTheta     = dot(fragNormal, sunDir);
 
-    if (skyLight > 0.8) {
+    // Day check via worldTime — 23500–24000 and 0–12500 is day/dusk/dawn
+    // This is more reliable than lmCoord.y which doesn't encode time of day
+    bool isDay = (worldTime < 13000 || worldTime > 22500);
 
-        // ── Geometric back-face check ─────────────────────────────────────────
-        // If this fragment faces AWAY from the sun, it's in shadow by geometry.
-        // Skip shadow map sampling entirely — avoids diagonal acne on N/S faces.
-        if (cosTheta <= 0.0) {
-            shadowFactor = 0.0;
-        } else {
-            // Perspective divide (safe even for ortho where w=1)
+    if (isDay) {
+        // Sun direction in world space — stable across camera rotations
+        vec3 sunDirWorld = normalize(mat3(gbufferModelViewInverse) * sunPosition);
+        float cosTheta   = dot(fragNormal, sunDirWorld);
+
+        // ── Smooth geometric attenuation ──────────────────────────────────────
+        // smoothstep creates a soft transition for sides oblique to the sun.
+        // No hard cutoff → no flickering at the perpendicular boundary.
+        // cosTheta < -0.05 → fully in shadow (genuine back face)
+        // cosTheta >  0.1  → full shadow map lighting
+        float geoFactor = smoothstep(-0.05, 0.1, cosTheta);
+
+        if (geoFactor > 0.001) {
+            // Only sample shadow map if the face is at least partially lit
             vec3 ndc          = shadowPos.xyz / shadowPos.w;
             vec3 shadowCoords = ndc * 0.5 + 0.5;
 
             if (all(greaterThan(shadowCoords, vec3(0.0))) &&
                 all(lessThan(shadowCoords, vec3(1.0)))) {
 
-                // Normal bias — smaller is ok now that back-faces are culled
-                float bias = mix(0.0006, 0.0001, clamp(cosTheta, 0.0, 1.0));
-
-                // Distance-adaptive spread — tighter near for sharp block shadows
-                // (distance now over 64 blocks instead of 128)
+                float bias   = mix(0.0008, 0.0002, clamp(cosTheta, 0.0, 1.0));
                 float dist   = length(shadowPos.xyz);
                 float spread = mix(1.0, 4.0, clamp(dist / 32.0, 0.0, 1.0));
 
-                shadowFactor = sampleShadowPCF(shadowCoords, bias, spread);
+                float pcf = sampleShadowPCF(shadowCoords, bias, spread);
 
-                // Frustum edge fade
+                // Edge fade at frustum bounds
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
                 float edgeFade = smoothstep(0.0, 0.1, min(edgeDist.x, edgeDist.y));
-                shadowFactor   = mix(1.0, shadowFactor, edgeFade);
+                pcf = mix(1.0, pcf, edgeFade);
 
-                // Dusk/dawn fade
-                float strength = smoothstep(0.8, 1.0, skyLight);
-                shadowFactor   = mix(1.0, shadowFactor, strength);
+                // Blend shadow map result with geometric attenuation
+                shadowFactor = mix(0.0, pcf, geoFactor);
+            } else {
+                // Outside frustum — pass through geometric attenuation only
+                shadowFactor = geoFactor;
             }
+        } else {
+            // Definitely a back face — full shadow, no sampling
+            shadowFactor = 0.0;
         }
     }
 
     // ── 4. Combine ────────────────────────────────────────────────────────────
-    float ambientMin = 0.35;
+    float ambientMin = 0.40;   // slightly raised — avoids too-dark sides
     float shadow     = mix(ambientMin, 1.0, shadowFactor);
 
     albedo.rgb *= lightmapColor * shadow;
