@@ -99,8 +99,14 @@ void main() {
 
                 // Edge fade at frustum bounds
                 vec2  edgeDist = 1.0 - abs(shadowCoords.xy * 2.0 - 1.0);
-                float edgeFade = smoothstep(0.0, 0.1, min(edgeDist.x, edgeDist.y));
+                float edgeFade = smoothstep(0.0, 0.15, min(edgeDist.x, edgeDist.y));
                 pcf = mix(1.0, pcf, edgeFade);
+
+                // Distance fade: shadow melts into full-lit beyond 48 blocks.
+                // At far distances the shadow map texel is too large for the
+                // fixed normal offset to prevent acne — fade avoids the problem.
+                float distFade = 1.0 - smoothstep(36.0, 56.0, dist);
+                pcf = mix(1.0, pcf, distFade);
 
                 // Blend shadow map result with geometric attenuation
                 shadowFactor = mix(0.0, pcf, geoFactor);
