@@ -1,7 +1,5 @@
-#version 330 compatibility
-/* Nether proxy */ #define WORLD_NETHER
-#include "/include/global.glsl"
-varying vec4 v_color;
-void main() { v_color = gl_Color; gl_Position = ftransform(); }
-
-
+#version 400 compatibility
+#define WORLD_NETHER
+#define PROGRAM_GBUFFERS_BASIC
+#define vsh
+#include "/program/gbuffers_basic.vsh"

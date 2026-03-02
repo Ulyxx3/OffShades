@@ -1,137 +1,115 @@
-/*
-================================================================================
-  OffShades — include/utility/encoding.glsl
-  Gbuffer data packing: normals, material IDs, roughness, metalness, emission.
-================================================================================
-*/
+#if !defined INCLUDE_UTILITY_ENCODING
+#define INCLUDE_UTILITY_ENCODING
 
-#ifndef UTILITY_ENCODING_INCLUDED
-#define UTILITY_ENCODING_INCLUDED
-
-// ============================================================
-//   Normal Encoding (Octahedral)
-// ============================================================
-
-// Encodes a unit normal into a vec2 in [-1, 1] (octahedral projection)
-vec2 encode_normal(vec3 n) {
-    float l1 = abs(n.x) + abs(n.y) + abs(n.z);
-    n /= l1;
-    if (n.z < 0.0) {
-        vec2 s = sign(n.xy) * max(abs(n.xy), 1e-8);
-        n.xy = (1.0 - abs(n.yx)) * s;
-    }
-    return n.xy;
+// Returns +-1
+vec2 sign_non_zero(vec2 v) {
+	return vec2(
+		v.x >= 0.0 ? 1.0 : -1.0,
+		v.y >= 0.0 ? 1.0 : -1.0
+	);
 }
 
-// Decodes octahedral normal back to unit vec3
-vec3 decode_normal(vec2 e) {
-    vec3 n = vec3(e.xy, 1.0 - abs(e.x) - abs(e.y));
-    if (n.z < 0.0) {
-        n.xy = (1.0 - abs(n.yx)) * sign(n.xy);
-    }
-    return normalize(n);
+// http://jcgt.org/published/0003/02/01/
+vec2 encode_unit_vector(vec3 v) {
+	// Project the sphere onto the octahedron, and then onto the xy plane
+	vec2 p = v.xy * (1.0 / (abs(v.x) + abs(v.y) + abs(v.z)));
+
+	// Reflect the folds of the lower hemisphere over the diagonals
+	p = v.z <= 0.0 ? ((1.0 - abs(p.yx)) * sign_non_zero(p)) : p;
+
+	// Scale to [0, 1]
+	return 0.5 * p + 0.5;
 }
 
-// ============================================================
-//   Material Data Packing
-// ============================================================
+vec3 decode_unit_vector(vec2 e) {
+	// Scale to [-1, 1]
+	e = 2.0 * e - 1.0;
 
-// colortex2 layout (rgba):
-//   r: encoded normal x (0..1, remapped from -1..1)
-//   g: encoded normal y
-//   b: material ID (packed 8-bit integer)
-//   a: ao (from vertex / vanilla AO)
+	// Extract Z component
+	vec3 v = vec3(e.xy, 1.0 - abs(e.x) - abs(e.y));
 
-vec4 pack_gbuffer2(vec3 normal, float mat_id, float ao) {
-    vec2 enc = encode_normal(normal) * 0.5 + 0.5;
-    return vec4(enc, mat_id / 255.0, ao);
+	// Reflect the folds of the lower hemisphere over the diagonals
+	if (v.z < 0) v.xy = (1.0 - abs(v.yx)) * sign_non_zero(v.xy);
+
+	return normalize(v);
 }
 
-void unpack_gbuffer2(vec4 data, out vec3 normal, out float mat_id, out float ao) {
-    normal = decode_normal(data.xy * 2.0 - 1.0);
-    mat_id = data.z * 255.0;
-    ao     = data.w;
+// The following functions are from https://github.com/Jessie-LC/open-source-utility-code/blob/main/advanced/packing.glsl
+
+vec4 encode_rgbe8(vec3 rgb) {
+	float exponent_part = floor(log2(max_of(vec4(rgb, exp2(-127.0)))));
+	vec3  mantissa_part = clamp((128.0 / 255.0) * exp2(-exponent_part) * rgb, 0.0, 1.0);
+	      exponent_part = clamp(exponent_part * (1.0 / 255.0) + (127.0 / 255.0), 0.0, 1.0);
+
+    return vec4(mantissa_part, exponent_part);
 }
 
-// colortex3 layout (rgba):
-//   r: roughness
-//   g: metalness
-//   b: F0 (specular intensity, 0 = non-metal default, >0.5 = conductor)
-//   a: emission (normalized, 0 = none)
-
-vec4 pack_gbuffer3(float roughness, float metalness, float f0, float emission) {
-    return vec4(roughness, metalness, f0, emission);
+vec3 decode_rgbe8(vec4 rgbe) {
+	const float add = log2(255.0 / 128.0) - 127.0;
+	return exp2(rgbe.a * 255.0 + add) * rgbe.rgb;
 }
 
-void unpack_gbuffer3(vec4 data, out float roughness, out float metalness, out float f0, out float emission) {
-    roughness = data.r;
-    metalness = data.g;
-    f0        = data.b;
-    emission  = data.a;
+float pack_unorm_2x4(vec2 xy) {
+	return dot(floor(15.0 * xy + 0.5), vec2(1.0 / 255.0, 16.0 / 255.0));
+}
+float pack_unorm_2x4(float x, float y) {
+	return pack_unorm_2x4(vec2(x, y));
 }
 
-// ============================================================
-//   Material IDs
-// ============================================================
-
-#define MAT_DEFAULT      0.0
-#define MAT_WATER        1.0
-#define MAT_LEAVES       2.0
-#define MAT_PLANTS       3.0
-#define MAT_GLASS        4.0
-#define MAT_ICE          5.0
-#define MAT_SNOW         6.0
-#define MAT_EMISSIVE     7.0
-#define MAT_ENTITY       8.0
-#define MAT_HAND         9.0
-#define MAT_NETHER_LAVA  10.0
-#define MAT_END_STONE    11.0
-#define MAT_METAL        12.0
-#define MAT_STONE        13.0
-#define MAT_SAND         14.0
-
-bool is_water(float mat_id)   { return abs(mat_id - MAT_WATER) < 0.5; }
-bool is_leaves(float mat_id)  { return abs(mat_id - MAT_LEAVES) < 0.5; }
-bool is_plants(float mat_id)  { return abs(mat_id - MAT_PLANTS) < 0.5; }
-bool is_glass(float mat_id)   { return abs(mat_id - MAT_GLASS) < 0.5; }
-bool is_emissive(float mat_id){ return abs(mat_id - MAT_EMISSIVE) < 0.5; }
-
-// ============================================================
-//   Depth Encoding
-// ============================================================
-
-// Linear depth from NDC depth
-float linearize_depth(float depth, float z_near, float z_far) {
-    return 2.0 * z_near * z_far / (z_far + z_near - (depth * 2.0 - 1.0) * (z_far - z_near));
+vec2 unpack_unorm_2x4(float pack) {
+	vec2 xy; xy.x = modf((255.0 / 16.0) * pack, xy.y);
+	return xy * vec2(16.0 / 15.0, 1.0 / 15.0);
 }
 
-// Linear depth from projection matrix (faster)
-float linearize_depth_fast(float depth, float proj22, float proj32) {
-    return -proj32 / (depth * 2.0 - 1.0 + proj22);
+float pack_unorm_2x8(vec2 v) {
+	return dot(floor(255.0 * v + 0.5), vec2(1.0 / 65535.0, 256.0 / 65535.0));
+}
+float pack_unorm_2x8(float x, float y) {
+	return pack_unorm_2x8(vec2(x, y));
 }
 
-// View-space Z from non-linear depth
-float view_z_from_depth(float depth, mat4 proj_inv) {
-    float ndc_z = depth * 2.0 - 1.0;
-    return -proj_inv[3][2] / (ndc_z + proj_inv[2][2]);
+vec2 unpack_unorm_2x8(float pack) {
+	vec2 xy; xy.x = modf((65535.0 / 256.0) * pack, xy.y);
+	return xy * vec2(256.0 / 255.0, 1.0 / 255.0);
 }
 
-// ============================================================
-//   Dithering
-// ============================================================
+// Pack 4 unsigned normalized numbers into a uint32_t with arbitrary precision per channel
 
-// 4x4 Bayer matrix dithering
-float bayer4x4(ivec2 coord) {
-    const int bayer[16] = int[](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
-    return float(bayer[(coord.x & 3) + (coord.y & 3) * 4]) / 16.0;
+uint pack_unorm_arb(vec4 data, const uvec4 bits) {
+	vec4 mul = exp2(vec4(bits)) - 1.0;
+
+	uvec4 shift = uvec4(0, bits.x, bits.x + bits.y, bits.x + bits.y + bits.z);
+	uvec4 shifted = uvec4(data * mul + 0.5) << shift;
+
+	return shifted.x | shifted.y | shifted.z | shifted.w;
 }
 
-float bayer8x8(ivec2 coord) {
-    float b = bayer4x4(coord >> 1);
-    float s = bayer4x4(coord & 3);
-    return (b + s * 0.25) * (16.0 / 64.0);
+vec4 unpack_unorm_arb(uint pack, const uvec4 bits) {
+	uvec4 max_value  = uvec4(exp2(bits) - 1);
+	uvec4 shift     = uvec4(0, bits.x, bits.x + bits.y, bits.x + bits.y + bits.z);
+	uvec4 unshifted = uvec4(pack) >> shift;
+	      unshifted = unshifted & max_value;
+
+	return vec4(unshifted) * rcp(vec4(max_value));
 }
 
-#endif // UTILITY_ENCODING_INCLUDED
+// Split one value to be encoded as 16 bit unorm into two values to be encoded as 8 bit unorm
+vec2 split_2x8(float x) {
+	uint i = uint(x * 65535.0);
+	uint lower = i & 255u;
+	uint upper = i >> 8u;
 
+	return vec2(
+		float(lower) * rcp(255.0),
+		float(upper) * rcp(255.0)
+	);
+}
+float unsplit_2x8(vec2 v) {
+	uint lower = uint(v.x * 255.0);
+	uint upper = uint(v.y * 255.0);
+	uint i = lower | (upper << 8);
 
+	return float(i) * rcp(65535.0);
+}
+
+#endif // INCLUDE_UTILITY_ENCODING

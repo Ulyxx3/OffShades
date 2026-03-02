@@ -1,7 +1,5 @@
-#version 330 compatibility
-/* composite6.vsh — color grading + tonemapping */
-#include "/include/global.glsl"
-varying vec2 v_uv;
-void main() { gl_Position = vec4(gl_Vertex.xy*2.0-1.0,0.0,1.0); v_uv=gl_Vertex.xy; }
-
-
+#version 400 compatibility
+#define WORLD_OVERWORLD
+#define BLOOM_TILE_INDEX 1
+#define vsh
+#include "/program/c5_c10_bloom_downsample.vsh"

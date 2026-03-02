@@ -1,7 +1,4 @@
-#version 330 compatibility
-/* composite3.vsh — TAA pass */
-#include "/include/global.glsl"
-varying vec2 v_uv;
-void main() { gl_Position = vec4(gl_Vertex.xy*2.0-1.0,0.0,1.0); v_uv=gl_Vertex.xy; }
-
-
+#version 400 compatibility
+#define WORLD_OVERWORLD
+#define vsh
+#include "/program/c3_taau_prep.vsh"

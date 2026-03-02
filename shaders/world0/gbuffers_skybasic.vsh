@@ -1,15 +1,5 @@
-#version 330 compatibility
-/*
-================================================================================
-  OffShades — world0/gbuffers_skybasic.vsh
-  Vanilla sky color gradient vertex shader.
-================================================================================
-*/
-#include "/include/global.glsl"
-varying vec4 v_color;
+#version 400 compatibility
+
 void main() {
-    v_color     = gl_Color;
-    gl_Position = ftransform();
+	gl_Position = vec4(-1.0);
 }
-
-

@@ -1,10 +1,5 @@
-#version 330 compatibility
-/* OffShades — world0/gbuffers_armor_glint.vsh */
-#include "/include/global.glsl"
-varying vec2 v_uv; varying vec4 v_color;
-void main() {
-    v_uv = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    v_color = gl_Color; gl_Position = ftransform();
-}
-
-
+#version 400 compatibility
+#define WORLD_OVERWORLD
+#define PROGRAM_GBUFFERS_ARMOR_GLINT
+#define vsh
+#include "/program/gbuffers_armor_glint.vsh"

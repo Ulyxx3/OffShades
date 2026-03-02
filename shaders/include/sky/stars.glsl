@@ -1,93 +1,56 @@
-/*
-================================================================================
-  OffShades — include/sky/stars.glsl
-  Procedural star field, shooting stars, Milky Way approximation.
-================================================================================
-*/
+#if !defined INCLUDE_SKY_STARS
+#define INCLUDE_SKY_STARS
 
-#ifndef STARS_INCLUDED
-#define STARS_INCLUDED
+// Stars based on https://www.shadertoy.com/view/Md2SR3
 
-#include "/include/utility/math.glsl"
-#include "/include/utility/color.glsl"
+vec3 unstable_star_field(vec2 coord, float star_threshold) {
+	const float min_temp = 4500.0;
+	const float max_temp = 8500.0;
 
-// ─── Default Star Settings ───────────────────────────────────────────────────
-#ifndef STARS_DENSITY
-  #define STARS_DENSITY    256.0
-#endif
-#ifndef STARS_TWINKLE
-  #define STARS_TWINKLE    0.3
-#endif
-#ifndef STARS_SIZE
-  #define STARS_SIZE       0.04
-#endif
-#ifndef STARS_BRIGHTNESS
-  #define STARS_BRIGHTNESS 2.0
-#endif
+	vec4 noise = hash4(coord);
 
-// ─── Star field ──────────────────────────────────────────────────────────────
-// Uses a hash-based point process.
-// dir     : normalized view direction in world space
-// Returns : star brightness (HDR)
-float star_field(vec3 dir) {
-    // Spherical coordinates
-    vec2 uv;
-    uv.x = atan(dir.x, dir.z) * (INV_PI * 0.5) + 0.5;
-    uv.y = dir.y * 0.5 + 0.5;
+	float star = linear_step(star_threshold, 1.0, noise.x);
+	      star = pow16(star) * STARS_INTENSITY;
 
-    // Tile the sphere into cells
-    vec2 cell    = floor(uv * STARS_DENSITY);
-    vec2 frac_uv = fract(uv * STARS_DENSITY);
+	float temp = mix(min_temp, max_temp, noise.y);
+	vec3 color = blackbody(temp);
 
-    float brightness = 0.0;
+	const float twinkle_speed = 2.0;
+	float twinkle_amount = noise.z;
+	float twinkle_offset = tau * noise.w;
+	star *= 1.0 - twinkle_amount * cos(frameTimeCounter * twinkle_speed + twinkle_offset);
 
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
-            vec2 neighbor = cell + vec2(x, y);
-            // Random star position within cell
-            vec2 star_pos = hash22(neighbor);
-            vec2 diff     = frac_uv - (vec2(x, y) + star_pos);
-            float dist_sq = dot(diff, diff);
-
-            // Only render bright stars
-            float threshold = hash12(neighbor + 523.7);
-            if (threshold > STARS_COVERAGE) continue;
-
-            // Star twinkle
-            float twinkle = 1.0 + STARS_TWINKLE * sin(frameTimeCounter * (5.0 + 3.0 * hash12(neighbor)));
-
-            float size = STARS_SIZE * (0.5 + 0.5 * threshold);
-            brightness += max(0.0, 1.0 - sqrt(dist_sq) / size) * twinkle;
-        }
-    }
-
-    return saturate(brightness) * STARS_BRIGHTNESS;
+	return star * color;
 }
 
-// ─── Star color from temperature ─────────────────────────────────────────────
-// Very simple approximation: hotter = bluer
-vec3 star_color(vec3 dir) {
-    vec2 uv   = vec2(atan(dir.x, dir.z) * INV_PI * 0.5 + 0.5, dir.y * 0.5 + 0.5);
-    float temp = hash12(floor(uv * STARS_DENSITY));
-    // Map [0,1] temp to color: cool red → white blue
-    return mix(vec3(1.0, 0.6, 0.4), vec3(0.7, 0.85, 1.0), temp);
+// Stabilizes the star field by sampling at the four neighboring integer coordinates and
+// interpolating
+vec3 stable_star_field(vec2 coord, float star_threshold) {
+	coord = abs(coord) + 33.3 * step(0.0, coord);
+	vec2 i, f = modf(coord, i);
+
+	f.x = cubic_smooth(f.x);
+	f.y = cubic_smooth(f.y);
+
+	return unstable_star_field(i + vec2(0.0, 0.0), star_threshold) * (1.0 - f.x) * (1.0 - f.y)
+	     + unstable_star_field(i + vec2(1.0, 0.0), star_threshold) * f.x * (1.0 - f.y)
+	     + unstable_star_field(i + vec2(0.0, 1.0), star_threshold) * f.y * (1.0 - f.x)
+	     + unstable_star_field(i + vec2(1.0, 1.0), star_threshold) * f.x * f.y;
 }
 
-// ─── Main star rendering ──────────────────────────────────────────────────────
-// dir       : normalized world view direction
-// night_factor : [0=day, 1=night] (suppress stars during day)
-vec3 render_stars(vec3 dir, float night_factor) {
-    if (night_factor < 0.001) return vec3(0.0);
+vec3 draw_stars(vec3 ray_dir, float galaxy_luminance) {
+	// Adjust star threshold so that brightest stars appear first
+#if defined WORLD_OVERWORLD
+	float star_threshold = 1.0 - 0.05 * STARS_COVERAGE * smoothstep(-0.2, 0.05, -sun_dir.y) - 0.5 * cube(galaxy_luminance);
+#else
+	float star_threshold = 1.0 - 0.008 * STARS_COVERAGE;
+#endif
 
-    float brightness = star_field(dir);
-    vec3  color      = mix(vec3(1.0), star_color(dir), 0.4);
+	// Project ray direction onto the plane
+	vec2 coord  = ray_dir.xy * rcp(abs(ray_dir.z) + length(ray_dir.xy)) + 41.21 * sign(ray_dir.z);
+	     coord *= 600.0;
 
-    // Stars only visible above horizon
-    float horizon = smoothstep(-0.02, 0.06, dir.y);
-
-    return brightness * color * night_factor * horizon;
+	return stable_star_field(coord, star_threshold);
 }
 
-#endif // STARS_INCLUDED
-
-
+#endif // INCLUDE_SKY_STARS

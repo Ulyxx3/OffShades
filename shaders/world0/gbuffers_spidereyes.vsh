@@ -1,10 +1,12 @@
-#version 330 compatibility
-/* OffShades — world0/gbuffers_spidereyes.vsh — glowing spider eyes */
-#include "/include/global.glsl"
-varying vec2 v_uv; varying vec4 v_color;
-void main() {
-    v_uv = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    v_color = gl_Color; gl_Position = ftransform();
-}
+#version 400 compatibility
+#define WORLD_OVERWORLD
+#define PROGRAM_GBUFFERS_SPIDEREYES
+#define vsh
 
+#include "/settings.glsl"
 
+#if defined IS_IRIS && defined USE_SEPARATE_ENTITY_DRAWS 
+#include "/program/gbuffers_all_translucent.vsh"
+#else
+#include "/program/gbuffers_all_solid.vsh"
+#endif

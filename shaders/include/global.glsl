@@ -1,214 +1,232 @@
-/*
-================================================================================
-  OffShades — include/global.glsl
-  Global uniforms, constants, and dimension macros shared by all programs.
-================================================================================
-*/
+// Enable half-precision floating point types
 
-#ifndef GLOBAL_INCLUDED
-#define GLOBAL_INCLUDED
-
-#include "/settings.glsl"
-
-// ============================================================
-//   Mathematical Constants
-// ============================================================
-
-#define PI      3.14159265358979
-#define TAU     6.28318530717959
-#define HALF_PI 1.57079632679490
-#define INV_PI  0.31830988618379
-#define SQRT2   1.41421356237310
-#define SQRT3   1.73205080756888
-#define PHI     1.61803398874989
-
-#define EPS 1e-5
-#define INF 1e10
-
-// ============================================================
-//   Dimension Detection
-// ============================================================
-
-#if defined(WORLD_NETHER)
-  #define DIM_NETHER
-#elif defined(WORLD_END)
-  #define DIM_END
-#else
-  #define DIM_OVERWORLD
+#ifdef USE_HALF_PRECISION_FP
+	#if defined MC_GL_AMD_gpu_shader_half_float 
+		#extension GL_AMD_gpu_shader_half_float : enable
+		#define HAS_F16
+	#elif defined MC_GL_NV_gpu_shader5 
+		#extension GL_NV_gpu_shader5 : enable
+		#define HAS_F16
+	#endif
 #endif
 
-// ============================================================
-//   Gbuffer Render Targets
-// ============================================================
+#ifdef HAS_F16 
+	#define f16       float16_t
+#else 
+	#define f16       float
+	#define f16vec2   vec2 
+	#define f16vec3   vec3 
+	#define f16vec4   vec4 
+	#define f16mat2   mat2 
+	#define f16mat2x2 mat2x2
+	#define f16mat2x3 mat2x3
+	#define f16mat2x4 mat2x4
+	#define f16mat3   mat3 
+	#define f16mat3x2 mat3x2
+	#define f16mat3x3 mat3x3
+	#define f16mat3x4 mat3x4
+	#define f16mat4   mat4 
+	#define f16mat4x2 mat4x2
+	#define f16mat4x3 mat4x3
+	#define f16mat4x4 mat4x4
+#endif
 
-// colortex0  : Scene color (HDR), reused across passes
-// colortex1  : Albedo + AO (gbuffer)
-// colortex2  : Normal (encoded) + Material ID
-// colortex3  : Specular data (roughness, metalness, F0, emissive)
-// colortex4  : Sky irradiance map (small buffer)
-// colortex5  : TAA history
-// colortex6  : AO result (half-res)
-// colortex7  : Volumetric fog (half-res)
-// colortex8  : Cloud shadow map (512x512)
-// colortex9  : Cloud render (temporal upscaling buffer A)
-// colortex10 : Cloud render (temporal upscaling buffer B)
-// colortex11 : Bloom chain
-// colortex12 : Misc scratch
-// colortex7 : Translucent data (water, glass, particles)
-// depthtex0  : Solid depth
-// depthtex1  : Translucent depth (water, glass)
-// shadowtex0 : Shadow map (hard)
-// shadowtex1 : Shadow map (for colored translucent)
-// shadowcolor0 : Colored shadow tint
+// Settings
 
-// ============================================================
-//   Uniforms
-// ============================================================
+#include "/settings.glsl"
+ 
+// Compatibility fixes
 
-uniform sampler2D colortex0;
-uniform sampler2D colortex1;
-uniform sampler2D colortex2;
-uniform sampler2D colortex3;
-uniform sampler2D colortex4;
-uniform sampler2D colortex5;
-uniform sampler2D colortex6;
-uniform sampler2D colortex7;
-uniform sampler2D colortex8;
-uniform sampler2D colortex9;
-uniform sampler2D colortex10;
-uniform sampler2D colortex11;
-uniform sampler2D colortex12;
+#if MC_VERSION < 11700
+	#define gtexture tex
+#endif
 
-uniform sampler2D depthtex0;
-uniform sampler2D depthtex1;
-uniform sampler2D noisetex;
+#ifndef MC_GL_VENDOR_INTEL
+	#define attribute in
+#endif
 
-uniform sampler2D       shadowtex0;
-uniform sampler2DShadow shadowtex1;
-uniform sampler2D       shadowcolor0;
-uniform sampler2D       shadowcolor1;
+// Common constants
 
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjection;
-uniform mat4 gbufferProjectionInverse;
+const float eps          = 1e-6;
+const float e            = exp(1.0);
+const float pi           = acos(-1.0);
+const float tau          = 2.0 * pi;
+const float half_pi      = 0.5 * pi;
+const float rcp_pi       = 1.0 / pi;
+const float degree       = tau / 360.0; // Size of one degree in radians, useful because radians() is not a constant expression on all platforms
+const float golden_ratio = 0.5 + 0.5 * sqrt(5.0);
+const float golden_angle = tau / golden_ratio / golden_ratio;
+const float hand_depth   = 0.56;
 
-uniform mat4 shadowModelView;
-uniform mat4 shadowModelViewInverse;
-uniform mat4 shadowProjection;
-uniform mat4 shadowProjectionInverse;
+#if defined TAA && defined TAAU
+const float taau_render_scale = TAAU_RENDER_SCALE;
+#else
+const float taau_render_scale = 1.0;
+#endif
 
-uniform mat4 gbufferPreviousModelView;
-uniform mat4 gbufferPreviousProjection;
-
-uniform vec3  cameraPosition;
-uniform vec3  previousCameraPosition;
-
-uniform vec3  sunPosition;
-uniform vec3  moonPosition;
-uniform vec3  upPosition;
-uniform vec3  shadowLightPosition;
-uniform vec3  skyColor;
-uniform vec3  fogColor;
-
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float aspectRatio;
-uniform float near;
-uniform float far;
-
-uniform float frameTimeCounter;
-uniform int   frameCounter;
-uniform int   worldTime;
-uniform int   worldDay;
-uniform int   moonPhase;
-
-uniform float rainStrength;
-uniform float wetness;
-uniform float thunderStrength;
-
-uniform float sunAngle;
-// Note: shadowDistance is declared as const float in settings.glsl (Iris built-in convention)
-
-
-uniform ivec2  eyeBrightness;
-uniform ivec2  eyeBrightnessSmooth;
-uniform float  eyeAltitude;
-uniform bool   isEyeInWater;
-
-// Injected by shaders.properties custom uniforms:
-uniform vec2  view_res;
-uniform vec2  view_pixel_size;
-uniform vec2  taa_offset;
-uniform vec3  sun_dir;
-uniform vec3  moon_dir;
-uniform vec3  light_dir;
-uniform vec3  view_sun_dir;
-uniform vec3  view_moon_dir;
-uniform vec3  view_light_dir;
-
-uniform float time_sunrise;
-uniform float time_noon;
-uniform float time_sunset;
-uniform float time_midnight;
-uniform float world_age;
-uniform bool  daylight_cycle_enabled;
-
-uniform float eye_blocklight;
-uniform float eye_skylight;
-
-uniform float moon_phase_brightness;
-uniform float atmosphere_saturation_boost_amount;
-uniform float lightning_flash_of;
-uniform float lightning_flash_base;
-
-uniform float biome_cave;
-uniform float biome_arid;
-uniform float biome_snowy;
-uniform float biome_taiga;
-uniform float biome_jungle;
-uniform float biome_swamp;
-uniform float biome_temperate;
-uniform float biome_may_rain;
-uniform float biome_may_snow;
-
-// ============================================================
-//   Helper Macros
-// ============================================================
+// Helper functions
 
 #define rcp(x) (1.0 / (x))
-#define saturate(x) clamp(x, 0.0, 1.0)
-#define linearstep(a, b, t) saturate(((t) - (a)) / ((b) - (a)))
+#define clamp01(x) clamp(x, 0.0, 1.0) // free on operation output
+#define max0(x) max(x, 0.0)
+#define min1(x) min(x, 1.0)
 
-// Screen-space UV from gl_FragCoord
-#define screen_uv (gl_FragCoord.xy * view_pixel_size)
+float sqr(float x) { return x * x; }
+vec2  sqr(vec2  v) { return v * v; }
+vec3  sqr(vec3  v) { return v * v; }
+vec4  sqr(vec4  v) { return v * v; }
 
-// Fast sRGB encode/decode
-#define srgb_to_linear(c) pow(max(c, 0.0), vec3(2.2))
-#define linear_to_srgb(c) pow(max(c, 0.0), vec3(1.0 / 2.2))
+float cube(float x) { return x * x * x; }
 
-// Luminance (BT.709)
-#define luminance(c) dot(c, vec3(0.2126, 0.7152, 0.0722))
+float max_of(vec2 v) { return max(v.x, v.y); }
+float max_of(vec3 v) { return max(v.x, max(v.y, v.z)); }
+float max_of(vec4 v) { return max(v.x, max(v.y, max(v.z, v.w))); }
+float min_of(vec2 v) { return min(v.x, v.y); }
+float min_of(vec3 v) { return min(v.x, min(v.y, v.z)); }
+float min_of(vec4 v) { return min(v.x, min(v.y, min(v.z, v.w))); }
 
-// ─── Global Sun/Moon Color ───────────────────────────────────────────────────
-vec3 sun_color(vec3 sun_dir_w) {
-    if (sun_dir_w.y > 0.0) {
-        // Day: blend between morning, noon, and evening
-        vec3 color_m = srgb_to_linear(vec3(SUN_MR, SUN_MG, SUN_MB)) * SUN_I;
-        vec3 color_n = srgb_to_linear(vec3(SUN_NR, SUN_NG, SUN_NB)) * SUN_I;
-        vec3 color_e = srgb_to_linear(vec3(SUN_ER, SUN_EG, SUN_EB)) * SUN_I;
-        
-        // Simple blend based on time variables (injected by shaders.properties)
-        return color_m * time_sunrise + color_n * time_noon + color_e * time_sunset;
-    } else {
-        // Night: Moon color
-        return srgb_to_linear(vec3(MOON_R, MOON_G, MOON_B)) * MOON_I;
-    }
+float length_squared(vec2 v) { return dot(v, v); }
+float length_squared(vec3 v) { return dot(v, v); }
+
+vec2 normalize_safe(vec2 v) { return v == vec2(0.0) ? v : normalize(v); }
+vec3 normalize_safe(vec3 v) { return v == vec3(0.0) ? v : normalize(v); }
+
+// Remapping functions
+
+float linear_step(float edge0, float edge1, float x) {
+	return clamp01((x - edge0) / (edge1 - edge0));
+}
+float linear_step_unclamped(float edge0, float edge1, float x) {
+	return (x - edge0) / (edge1 - edge0);
 }
 
-#include "/include/utility/math.glsl"
-#include "/include/utility/depth.glsl"
+vec2 linear_step(vec2 edge0, vec2 edge1, vec2 x) {
+	return clamp01((x - edge0) / (edge1 - edge0));
+}
 
-#endif // GLOBAL_INCLUDED
+// Can be used similarly to sqrt() to shape a signal on [0, 1]
+float dampen(float x) {
+	x = clamp01(x);
+	return x * (2.0 - x);
+}
 
+// Can be used similarly to pow() to shape a signal
+//
+// amount := lifting amount [-1.0, inf]
+//
+// amount = 0 -> identity
+// amount < 0 -> increase signal contrast (power > 1)
+// amount > 0 -> reduce signal contrast (power < 1)
+float lift(float x, float amount) {
+	return (x + x * amount) / (1.0 + x * amount);
+}
+vec3 lift(vec3 x, float amount) {
+	return (x + x * amount) / (1.0 + x * amount);
+}
 
+// Smoothing function used by smoothstep
+// Zero derivative at zero and one
+float cubic_smooth(float x) {
+	return sqr(x) * (3.0 - 2.0 * x);
+}
+vec2 cubic_smooth(vec2 x) {
+	return sqr(x) * (3.0 - 2.0 * x);
+}
+
+// Similar to the above, but even smoother with a zero second derivative at zero and one
+float quintic_smooth(float x) {
+    return cube(x) * (x * (x * 6.0 - 15.0) + 10.0);
+}
+
+// Converts between the unit range [0, 1] and texture coordinates on [0.5/res, 1 - 0.5/res]. This
+// prevents extrapolation at texture edges (used for atmosphere lookup tables)
+float get_uv_from_unit_range(float values, const int res) {
+	return values * (1.0 - 1.0 / float(res)) + (0.5 / float(res));
+}
+
+float get_unit_range_from_uv(float uv, const int res) {
+	return (uv - 0.5 / float(res)) / (1.0 - 1.0 / float(res));
+}
+
+// (the following functions are from https://iquilezles.org/articles/functions/)
+
+// Applies a smooth minimum value to a signal, where n is the new minimum value and m is the
+// threshold after which x remains unchanged
+float almost_identity(float x, float m, float n) {
+	if(x > m) return x;
+
+	float a = 2.0 * n - m;
+	float b = 2.0 * m - 3.0 * n;
+	float t = x / m;
+
+	return (a * t + b) * t * t + n;
+}
+
+// Equivalent to almost_identity with n = 0 and m = 1
+float almost_unit_identity(float x) {
+	return x * x * (2.0 - x);
+}
+
+// Remaps center +/- 0.5 * width to zero and center to 1, with the same smoothing function as
+// smoothstep
+float pulse(float x, float center, float width) {
+    x = abs(x - center) / width;
+    return x > 1.0 ? 0.0 : 1.0 - cubic_smooth(x);
+}
+
+float pulse(float x, float center, float width, const float period) {
+	x = (x - center + 0.5 * period) / period;
+	x = fract(x) * period - (0.5 * period);
+
+	return pulse(x, 0.0, width);
+}
+
+// Exponential impulse function, for when a signal rises quickly then gradually falls.
+float impulse(float x, float peak) {
+	float h = peak * x;
+	return h * exp(1.0 - h);
+}
+
+// Euclidian distance is defined as sqrt(a^2 + b^2 + ...). This function instead does
+// cbrt(|a|^3 + |b|^3 + ...). This results in smaller distances along the diagonal axes
+float cubic_length(vec2 v) {
+	return pow(cube(abs(v.x)) + cube(abs(v.y)), rcp(3.0));
+}
+
+// Matrix operations
+
+vec2 diagonal(mat2 m) { return vec2(m[0].x, m[1].y); }
+vec3 diagonal(mat3 m) { return vec3(m[0].x, m[1].y, m[2].z); }
+vec4 diagonal(mat4 m) { return vec4(m[0].x, m[1].y, m[2].z, m[3].w); }
+
+vec3 transform(mat4 m, vec3 pos) {
+    return mat3(m) * pos + m[3].xyz;
+}
+
+vec4 project(mat4 m, vec3 pos) {
+    return vec4(m[0].x, m[1].y, m[2].zw) * pos.xyzz + m[3];
+}
+
+vec3 project_and_divide(mat4 m, vec3 pos) {
+    vec4 homogenous = project(m, pos);
+    return homogenous.xyz / homogenous.w;
+}
+
+vec3 project_ortho(mat4 m, vec3 pos) {
+    return diagonal(m).xyz * pos + m[3].xyz;
+}
+
+// Hand 
+
+void fix_hand_depth(inout float depth, out bool is_hand) {
+	is_hand = depth < hand_depth; // NB: Not the same as mc_hand_depth
+	if (is_hand) {
+		depth  = depth * 2.0 - 1.0;
+		depth *= rcp(MC_HAND_DEPTH);
+		depth  = depth * 0.5 + 0.5;
+	}
+}
+void fix_hand_depth(inout float depth) {
+	bool unused;
+	fix_hand_depth(depth, unused);
+}

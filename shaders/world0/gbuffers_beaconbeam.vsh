@@ -1,7 +1,5 @@
-#version 330 compatibility
-/* OffShades — world0/gbuffers_beaconbeam.vsh — beacon beam */
-#include "/include/global.glsl"
-varying vec4 v_color;
-void main() { v_color = gl_Color; gl_Position = ftransform(); }
-
-
+#version 400 compatibility
+#define WORLD_OVERWORLD
+#define PROGRAM_GBUFFERS_BEACONBEAM
+#define vsh
+#include "/program/gbuffers_all_solid.vsh"
