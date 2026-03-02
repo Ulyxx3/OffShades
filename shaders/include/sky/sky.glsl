@@ -250,19 +250,27 @@ vec3 draw_sun(vec3 ray_dir) {
 	return end_sun_color * rcp(sun_solid_angle) * max0(sun_disk + 0.1 * flare);
 }
 
+#include "/include/end/EndSky.glsl"
+
 vec3 draw_sky(vec3 ray_dir) {
-	float up_gradient = linear_step(0.0, 0.4, ray_dir.y) + linear_step(0.1, 0.8, -ray_dir.y);
-	vec3 sky = ambient_color * mix(0.1, 0.04, up_gradient);
-	float mie_phase = cornette_shanks_phase(dot(ray_dir, sun_dir), 0.6);
-	sky += 0.1 * (ambient_color + 0.5 * end_sun_color) * mie_phase;
+	vec3 sky = vec3(0.0);
 
 #if defined PROGRAM_DEFERRED4
-	#ifdef END_SUN_EFFECT
-	sky += draw_sun(ray_dir);
-	#endif
-
-	vec3 stars_fade = exp2(-0.1 * max0(1.0 - ray_dir.y) / max(ambient_color, eps)) * linear_step(-0.2, 0.0, ray_dir.y);
-	sky += draw_stars(ray_dir, 0.0).xzy * stars_fade;
+	// Call Iteration's Planet & Blackhole
+	float timeFactor = get_end_time_factor(frameTimeCounter);
+	float planetShadow = get_planet_shadow(timeFactor);
+	
+	// Draw BlackHole and Stars
+	BlackHole_AccretionDisc_Stars(sky, ray_dir, sun_dir, gl_FragCoord.xy, frameTimeCounter, noisetex, sun_dir);
+	
+	// Draw Planet
+	PlanetEnd2(sky, cameraPosition, ray_dir, sun_dir, -sun_dir, timeFactor, planetShadow, noisetex);
+#else
+	// Base fallback for volumetric light/fog in END if not deferred4
+	float up_gradient = linear_step(0.0, 0.4, ray_dir.y) + linear_step(0.1, 0.8, -ray_dir.y);
+	sky = ambient_color * mix(0.1, 0.04, up_gradient);
+	float mie_phase = cornette_shanks_phase(dot(ray_dir, sun_dir), 0.6);
+	sky += 0.1 * (ambient_color + 0.5 * end_sun_color) * mie_phase;
 #endif
 
 	return sky;
