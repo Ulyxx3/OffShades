@@ -1,21 +1,18 @@
 /*
 --------------------------------------------------------------------------------
 
-  OffShades Shader (based on Photon by SixthSurge)
+  Photon Shader by SixthSurge
 
   program/d1_clouds:
-  Render clouds (Complementary Reimagined style) and aurora (Photon)
-
-  Cloud system: Complementary Reimagined r5.7.1 by EminGT
-  Base shader:  Photon v1.2a by SixthSurge
+  Render clouds and aurora
 
 --------------------------------------------------------------------------------
 */
 
 #include "/include/global.glsl"
 
-layout (location = 0) out vec4 clouds;
-layout (location = 1) out vec2 clouds_data;
+layout(location = 0) out vec4 clouds;
+layout(location = 1) out vec2 clouds_data;
 
 /* RENDERTARGETS: 9,10 */
 
@@ -64,6 +61,7 @@ uniform float near;
 uniform float far;
 
 uniform int worldTime;
+uniform int moonPhase;
 uniform float sunAngle;
 
 uniform int frameCounter;
@@ -108,131 +106,145 @@ uniform float biome_humidity;
 #define ATMOSPHERE_SCATTERING_LUT depthtex0
 #define MIE_PHASE_CLAMP
 
+#ifdef CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE
+#define CLOUDS_USE_LOCAL_COVERAGE_MAP
+#endif
+
 #if defined WORLD_OVERWORLD
 #include "/include/sky/atmosphere.glsl"
 #include "/include/sky/aurora.glsl"
-
-// Complementary Reimagined Cloud System
-#define DEFERRED1
-#include "/include/clouds_cr/cr_clouds_integration.glsl"
+#include "/include/sky/clouds.glsl"
+#include "/include/sky/clouds_reimagined.glsl"
 
 #if defined CREPUSCULAR_RAYS && !defined BLOCKY_CLOUDS
 #include "/include/sky/crepuscular_rays.glsl"
 #endif
 #endif
 
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/checkerboard.glsl"
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
 
-// We still use checkerboard for cloud temporal upscaling
-const int checkerboard_area = CLOUDS_TEMPORAL_UPSCALING * CLOUDS_TEMPORAL_UPSCALING;
+const int checkerboard_area =
+    CLOUDS_TEMPORAL_UPSCALING * CLOUDS_TEMPORAL_UPSCALING;
 
-float depth_max_4x4(sampler2D depth_sampler) {
-	vec4 depth_samples_0 = textureGather(depth_sampler, uv * taau_render_scale + vec2( 2.0 * view_pixel_size.x,  2.0 * view_pixel_size.y));
-	vec4 depth_samples_1 = textureGather(depth_sampler, uv * taau_render_scale + vec2(-2.0 * view_pixel_size.x,  2.0 * view_pixel_size.y));
-	vec4 depth_samples_2 = textureGather(depth_sampler, uv * taau_render_scale + vec2( 2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y));
-	vec4 depth_samples_3 = textureGather(depth_sampler, uv * taau_render_scale + vec2(-2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y));
+float depth_max_4x4(sampler2D depth_sampler, float scale) {
+    vec4 depth_samples_0 = textureGather(
+        depth_sampler,
+        uv * scale + vec2(2.0 * view_pixel_size.x, 2.0 * view_pixel_size.y)
+    );
+    vec4 depth_samples_1 = textureGather(
+        depth_sampler,
+        uv * scale + vec2(-2.0 * view_pixel_size.x, 2.0 * view_pixel_size.y)
+    );
+    vec4 depth_samples_2 = textureGather(
+        depth_sampler,
+        uv * scale + vec2(2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y)
+    );
+    vec4 depth_samples_3 = textureGather(
+        depth_sampler,
+        uv * scale + vec2(-2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y)
+    );
 
-	return max(
-		max(max_of(depth_samples_0), max_of(depth_samples_1)),
-		max(max_of(depth_samples_2), max_of(depth_samples_3))
-	);
+    return max(
+        max(max_of(depth_samples_0), max_of(depth_samples_1)),
+        max(max_of(depth_samples_2), max_of(depth_samples_3))
+    );
 }
 
 void main() {
-	ivec2 texel = ivec2(gl_FragCoord.xy);
+    ivec2 texel = ivec2(gl_FragCoord.xy);
 
-	clouds = vec4(0.0, 0.0, 0.0, 1.0);
-	clouds_data = vec2(1e6, 0.0);
+    clouds = vec4(0.0, 0.0, 0.0, 1.0);
 
 #if defined WORLD_OVERWORLD
-	ivec2 checkerboard_pos = CLOUDS_TEMPORAL_UPSCALING * texel + clouds_checkerboard_offsets[frameCounter % checkerboard_area];
+    ivec2 checkerboard_pos = CLOUDS_TEMPORAL_UPSCALING * texel +
+        clouds_checkerboard_offsets[frameCounter % checkerboard_area];
 
-	vec2 new_uv = vec2(checkerboard_pos) / vec2(view_res) * rcp(float(taau_render_scale));
+    vec2 new_uv =
+        vec2(checkerboard_pos) / vec2(view_res) * rcp(float(taau_render_scale));
 
-	// Get maximum depth from area covered by this fragment
-	float depth_max = depth_max_4x4(depthtex1);
+    // Get maximum depth from area covered by this fragment
+    float depth_max = depth_max_4x4(depthtex1, taau_render_scale);
 
-	vec3 screen_pos = vec3(new_uv, depth_max);
-	vec3 view_pos   = screen_to_view_space(screen_pos, false);
+    vec3 screen_pos = vec3(new_uv, depth_max);
+    vec3 view_pos = screen_to_view_space(screen_pos, false);
 
-	// Distant Horizons support
-#ifdef DISTANT_HORIZONS
-	float depth_dh = depth_max_4x4(dhDepthTex);
-	bool is_dh_terrain = is_distant_horizons_terrain(depth_max, depth_dh);
-	if (is_dh_terrain) {
-		screen_pos = vec3(new_uv, depth_dh);
-		view_pos   = screen_to_view_space(screen_pos, false, true);
-	}
+    // LoD terrain support
+#ifdef LOD_MOD_ACTIVE
+    float depth_lod = depth_max_4x4(lod_depth_tex, lod_depth_tex_scale);
+    bool is_lod = is_lod_terrain(depth_max, depth_lod);
+
+    if (is_lod) {
+        screen_pos = vec3(new_uv, depth_lod);
+        view_pos = screen_to_view_space(screen_pos, false, true);
+    }
 #else
-	const bool is_dh_terrain = false;
+    const bool is_lod = false;
 #endif
 
-	vec3 ray_dir = mat3(gbufferModelViewInverse) * normalize(view_pos);
+    vec3 ray_origin =
+        vec3(
+            0.0,
+            CLOUDS_SCALE * (eyeAltitude - SEA_LEVEL) + planet_radius,
+            0.0
+        ) +
+        CLOUDS_SCALE * gbufferModelViewInverse[3].xyz;
+    vec3 ray_dir = mat3(gbufferModelViewInverse) * normalize(view_pos);
 
-	// Camera position in world space (approximate with eyeAltitude for Y)
-	vec3 cam_world = vec3(cameraPosition.x, eyeAltitude, cameraPosition.z);
+    float distance_to_terrain =
+        (depth_max == 1.0 && !is_lod) ? -1.0 : length(view_pos) * CLOUDS_SCALE;
 
-	float distance_to_terrain = (depth_max == 1.0 && !is_dh_terrain)
-		? 1.0e8
-		: length(view_pos) * CLOUDS_SCALE;
+    vec3 clear_sky = atmosphere_scattering(
+        ray_dir,
+        sun_color,
+        sun_dir,
+        moon_color,
+        moon_dir,
+        /* use_klein_nishina_phase */ false
+    );
 
-	// Sky / terrain sky fade
-	float skyFade = (depth_max == 1.0 && !is_dh_terrain) ? 1.0 : 0.0;
+    float dither = texelFetch(noisetex, ivec2(checkerboard_pos & 511), 0).b;
+    dither = r1(frameCounter / checkerboard_area, dither);
 
-	float VdotS = dot(ray_dir, sun_dir);
-	float VdotU = dot(ray_dir, vec3(0.0, 1.0, 0.0));
+#ifndef BLOCKY_CLOUDS
+    CloudsResult result = draw_reimagined_box_clouds(
+        cameraPosition,
+        ray_dir,
+        clear_sky,
+        sun_color,
+        moon_color,
+        sky_color,
+        distance_to_terrain,
+        dither
+    );
 
-	float dither = texelFetch(noisetex, ivec2(checkerboard_pos & 511), 0).b;
-	      dither = r1(frameCounter / checkerboard_area, dither);
+    clouds.xyz = result.scattering.xyz;
+    clouds.w = result.transmittance;
+    clouds_data.x = result.apparent_distance;
+    clouds_data.y = result.scattering.w;
+#else
+    clouds = vec4(0.0, 0.0, 0.0, 1.0);
+    clouds_data.x = 1e6;
+    clouds_data.y = 0.0;
+#endif
 
-	// -------------------------------------------------------
-	//  Complementary Reimagined Volumetric Clouds
-	// -------------------------------------------------------
-	float cloudLinearDepth = 1.0;
+    // Crepuscular rays
 
-	vec4 cr_clouds = CR_GetVolumetricClouds(
-		cloudAlt1i,          // cloud altitude
-		4000.0,              // distance threshold (blocks)
-		cloudLinearDepth,
-		skyFade,
-		sun_color,
-		moon_color,
-		sky_color,
-		ray_dir,
-		cam_world,
-		distance_to_terrain,
-		VdotS,
-		VdotU,
-		dither
-	);
-
-	// Convert CR result into Photon output buffers
-	// CR returns: rgb=cloud color, a=cloud opacity (0=transparent, 1=opaque)
-	// Photon expects: rgb=scattering, w=transmittance (0=opaque, 1=transparent)
-	if (cr_clouds.a > 0.001) {
-		float transmittance = 1.0 - cr_clouds.a;
-		clouds.rgb = cr_clouds.rgb * cr_clouds.a;
-		clouds.w   = transmittance;
-		clouds_data.x = cloudLinearDepth * far;
-		clouds_data.y = 0.0;
-	}
-
-	// Crepuscular rays (Photon, keep original)
 #if defined CREPUSCULAR_RAYS && !defined BLOCKY_CLOUDS
-	vec4 crepuscular = draw_crepuscular_rays(
-		colortex8,
-		ray_dir,
-		distance_to_terrain > 0.0 && distance_to_terrain < 1.0e6,
-		dither
-	);
-	clouds   *= crepuscular.w;
-	clouds.rgb += crepuscular.xyz;
+    vec4 crepuscular_rays = draw_crepuscular_rays(
+        colortex8,
+        ray_dir,
+        distance_to_terrain > 0.0,
+        dither
+    );
+    clouds *= crepuscular_rays.w;
+    clouds.rgb += crepuscular_rays.xyz;
 #endif
 
-	// Aurora (Photon, keep original)
-	clouds.xyz += draw_aurora(ray_dir, dither) * clouds.w;
+    // Aurora
+
+    clouds.xyz += draw_aurora(ray_dir, dither) * clouds.w;
 #endif
 }
