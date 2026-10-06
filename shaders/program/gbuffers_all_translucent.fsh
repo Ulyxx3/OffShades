@@ -675,10 +675,13 @@ void main() {
 
 #ifdef SNELLS_WINDOW
         if (isEyeInWater == 1) {
+            // Under water, surface waves smoothly deform the boundary of Snell's window without flickering
+            vec3 snell_wave_normal = normalize(tbn[2] + (tbn[0] * normal_tangent.x + tbn[1] * normal_tangent.y) * 1.5);
+            float NoV_snell = clamp01(dot(snell_wave_normal, -direction_world));
             fragment_color.a =
                 mix(fragment_color.a,
                     1.0,
-                    fresnel_dielectric_n(NoV, air_n / water_n).x);
+                    fresnel_dielectric_n(NoV_snell, air_n / water_n).x);
         }
 #endif
     }
@@ -697,7 +700,7 @@ void main() {
     // Refraction data
 
 #if defined PROGRAM_GBUFFERS_WATER
-    refraction_data.xy = split_2x8(normal_tangent.x * 0.5 + 0.5);
-    refraction_data.zw = split_2x8(normal_tangent.y * 0.5 + 0.5);
+    refraction_data.xy = split_2x8(clamp(normal_tangent.x * 0.5 + 0.5, 0.0, 1.0));
+    refraction_data.zw = split_2x8(clamp(normal_tangent.y * 0.5 + 0.5, 0.0, 1.0));
 #endif
 }

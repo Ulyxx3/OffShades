@@ -4,9 +4,45 @@
 #include "/include/sky/clouds/constants.glsl"
 #include "/include/utility/bicubic.glsl"
 
-const ivec2 cloud_shadow_res = ivec2(512);
+#ifndef SAMPLER_GAUX4_DECLARED
+#define SAMPLER_GAUX4_DECLARED
+uniform sampler2D gaux4; // Complementary cloud-water atlas
+#endif
 
+const ivec2 cloud_shadow_res = ivec2(512);
 const float cloud_shadow_extent = 256.0 / (CLOUDS_SCALE / 10.0);
+#if !defined INCLUDE_SKY_CLOUDS_REIMAGINED_FUNCS
+#define INCLUDE_SKY_CLOUDS_REIMAGINED_FUNCS
+
+const float cloudNarrowness = 0.07;
+const float defaultCloudAltitude = 160.0;
+
+vec2 get_rounded_cloud_coord(vec2 pos, float roundness) {
+    vec2 coord = pos.yx + 0.5;
+    vec2 sign_coord = sign(coord);
+    coord = abs(coord) + 1.0;
+    vec2 i, f = modf(coord, i);
+    f = smoothstep(0.5 - roundness, 0.5 + roundness, f);
+    coord = i + f;
+    return (coord - 0.5) * sign_coord / 256.0;
+}
+
+vec3 modify_cloud_trace_pos(vec3 trace_pos, float altitude, float wind) {
+    trace_pos.z -= wind;
+    trace_pos.x += altitude * 64.0;
+    trace_pos.xz *= cloudNarrowness;
+    return trace_pos;
+}
+
+#endif
+
+float sample_reimagined_cloud(vec3 pos, float wind, float roundness) {
+    vec3 pos_m = modify_cloud_trace_pos(pos, defaultCloudAltitude, wind);
+    vec2 coord = get_rounded_cloud_coord(pos_m.xz, roundness);
+    float noise = texture(gaux4, coord).b;
+    float rain_boost = rainStrength * 0.12;
+    return smoothstep(0.20 - rain_boost, 0.40, noise);
+}
 
 vec2 shadow_view_to_cloud_shadow_space(vec3 shadow_view_pos) {
     vec2 cloud_shadow_pos = shadow_view_pos.xy / cloud_shadow_extent;
@@ -24,7 +60,9 @@ vec2 project_cloud_shadow_map(vec3 scene_pos) {
 
 vec3 unproject_cloud_shadow_map(vec2 cloud_shadow_pos) {
     cloud_shadow_pos = cloud_shadow_pos * 2.0 - 1.0;
-    cloud_shadow_pos /= 1.0 - length(cloud_shadow_pos);
+    float len = length(cloud_shadow_pos);
+    if (len >= 0.99) return vec3(0.0);
+    cloud_shadow_pos /= 1.0 - len;
 
     vec3 shadow_view_pos = vec3(cloud_shadow_pos * cloud_shadow_extent, 1.0);
 
@@ -35,100 +73,64 @@ float get_cloud_shadows(sampler2D cloud_shadow_map, vec3 scene_pos) {
 #ifndef CLOUD_SHADOWS
     return 1.0;
 #else
-    vec2 cloud_shadow_pos = project_cloud_shadow_map(scene_pos) *
-        vec2(cloud_shadow_res) / vec2(textureSize(cloud_shadow_map, 0));
-
-    if (clamp01(cloud_shadow_pos) != cloud_shadow_pos) {
+    // If the light source is too low or below horizon, no cloud shadows
+    if (light_dir.y < 0.05) {
         return 1.0;
     }
 
-    // fade out cloud shadows when:
-    //  - the fragment is above the cloud layer
-    //  - the sun is near the horizon
-    float r =
-        planet_radius + (scene_pos.y + eyeAltitude - SEA_LEVEL) * CLOUDS_SCALE;
-    float altitude_fraction =
-        linear_step(clouds_cumulus_radius, clouds_cumulus_top_radius, r);
-    float cloud_shadow_fade =
-        smoothstep(0.05, 0.15, light_dir.y) * clamp01(1.0 - altitude_fraction);
+    vec3 world_pos = scene_pos + cameraPosition;
 
-    float cloud_shadow = bicubic_filter(cloud_shadow_map, cloud_shadow_pos).x;
-    cloud_shadow = cloud_shadow * cloud_shadow_fade + (1.0 - cloud_shadow_fade);
+    // Fade out cloud shadows when fragment is at or above cloud layer (160m)
+    float dist_to_cloud = defaultCloudAltitude - world_pos.y;
+    if (dist_to_cloud <= 0.0) {
+        return 1.0;
+    }
 
-    return cloud_shadow * CLOUD_SHADOWS_INTENSITY +
-        (1.0 - CLOUD_SHADOWS_INTENSITY);
+    float light_y = max(light_dir.y, 0.08);
+    vec3 cloud_pos = world_pos + light_dir * (dist_to_cloud / light_y);
+
+    float wind = frameTimeCounter * 0.015 * 1.2;
+    const float roundness = 0.30;
+
+    float cloud_density = sample_reimagined_cloud(cloud_pos, wind, roundness);
+
+    // Altitude fade near cloud altitude (150m to 160m)
+    float altitude_fraction = smoothstep(150.0, 160.0, world_pos.y);
+    // Sun elevation fade near horizon (0.05 to 0.15)
+    float sun_fade = smoothstep(0.05, 0.15, light_dir.y);
+    float cloud_shadow_fade = sun_fade * (1.0 - altitude_fraction);
+
+    float shadow = 1.0 - cloud_density * cloud_shadow_fade * CLOUD_SHADOWS_INTENSITY;
+    return shadow;
 #endif
 }
 
 #if defined PROGRAM_PREPARE && defined CLOUD_SHADOWS
-#include "/include/sky/clouds/altocumulus.glsl"
-#include "/include/sky/clouds/cirrus.glsl"
-#include "/include/sky/clouds/cumulus.glsl"
-#include "/include/sky/clouds/cumulus_congestus.glsl"
 
 vec2 render_cloud_shadow_map(vec2 uv) {
-    // Transform position from scene-space to clouds-space
-    vec3 ray_origin = unproject_cloud_shadow_map(uv);
-    ray_origin =
-        vec3(ray_origin.xz, ray_origin.y + eyeAltitude - SEA_LEVEL).xzy *
-            CLOUDS_SCALE +
-        vec3(0.0, planet_radius, 0.0);
+    if (light_dir.y < 0.04) {
+        return vec2(1.0, 1.0);
+    }
 
-    vec3 pos;
-    float t, density, extinction_coeff;
-    float shadow = 1.0;
-    float shadow_cumulus_only = 1.0;
-    float distance_fade;
-    float distance_fade_strength = 0.00000001 * pulse(light_dir.y, -0.01, 0.2);
+    vec2 p = uv * 2.0 - 1.0;
+    if (length(p) >= 0.98) {
+        return vec2(1.0, 1.0);
+    }
 
-#ifdef CLOUDS_CUMULUS
-    extinction_coeff = 0.25 * clouds_params.l0_extinction_coeff;
-    t = intersect_sphere(
-            ray_origin,
-            light_dir,
-            clouds_cumulus_radius + 0.25 * clouds_cumulus_thickness
-    )
-            .y;
-    pos = ray_origin + light_dir * t;
-    distance_fade = exp2(-distance_fade_strength * length(pos.xy));
-    density = clouds_cumulus_density(pos);
-    shadow *=
-        exp(-1.00 * distance_fade * extinction_coeff *
-            clouds_cumulus_thickness * rcp(abs(light_dir.y) + eps) * density);
-    shadow_cumulus_only = shadow;
-#endif
+    vec3 scene_pos = unproject_cloud_shadow_map(uv);
+    vec3 world_pos = scene_pos + cameraPosition;
 
-#ifdef CLOUDS_ALTOCUMULUS
-    extinction_coeff = mix(0.05, 0.1, day_factor) * CLOUDS_ALTOCUMULUS_DENSITY *
-        (1.0 - 0.33 * rainStrength);
-    t = intersect_sphere(
-            ray_origin,
-            light_dir,
-            clouds_altocumulus_radius + 0.5 * clouds_altocumulus_thickness
-    )
-            .y;
-    pos = ray_origin + light_dir * t;
-    distance_fade = exp2(-distance_fade_strength * length(pos.xy));
-    density = clouds_altocumulus_density(pos);
-    shadow *=
-        exp(-1.00 * distance_fade * extinction_coeff *
-            clouds_altocumulus_thickness * rcp(abs(light_dir.y) + eps) *
-            density);
-#endif
+    float light_y = max(light_dir.y, 0.08);
+    float dist_to_cloud = defaultCloudAltitude - world_pos.y;
+    vec3 cloud_pos = world_pos + light_dir * (dist_to_cloud / light_y);
 
-#ifdef CLOUDS_CIRRUS
-    t = intersect_sphere(ray_origin, light_dir, clouds_cirrus_radius).y;
-    pos = ray_origin + light_dir * t;
-    distance_fade = exp2(-distance_fade_strength * length(pos.xy));
-    density = clouds_cirrus_density(pos.xz, 0.5);
-    shadow *=
-        exp(-1.00 * distance_fade * clouds_cirrus_extinction_coeff *
-            clouds_cirrus_thickness * rcp(abs(light_dir.y) + eps) * density) *
-            0.5 +
-        0.5;
-#endif
+    float wind = frameTimeCounter * 0.015 * 1.2;
+    const float roundness = 0.30;
 
-    return vec2(shadow, shadow_cumulus_only);
+    float cloud_density = sample_reimagined_cloud(cloud_pos, wind, roundness);
+    float shadow = 1.0 - cloud_density;
+
+    return vec2(shadow, shadow);
 }
 #endif
 #endif // INCLUDE_LIGHTING_CLOUD_SHADOWS

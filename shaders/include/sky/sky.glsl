@@ -20,7 +20,7 @@
 #include "/include/utility/geometry.glsl"
 
 #if defined PROGRAM_DEFERRED0
-#include "/include/sky/clouds.glsl"
+#include "/include/sky/clouds_reimagined.glsl"
 
 #if defined CREPUSCULAR_RAYS && !defined BLOCKY_CLOUDS
 #include "/include/sky/crepuscular_rays.glsl"
@@ -237,9 +237,16 @@ vec4 get_clouds_and_aurora(
     // Clouds
 
 #ifndef BLOCKY_CLOUDS
-    const vec3 air_viewer_pos = vec3(0.0, planet_radius, 0.0);
-    CloudsResult result =
-        draw_clouds(air_viewer_pos, ray_dir, clear_sky, -1.0, dither);
+    CloudsResult result = draw_reimagined_box_clouds(
+        cameraPosition,
+        ray_dir,
+        clear_sky,
+        sun_color,
+        moon_color,
+        sky_color,
+        -1.0,
+        dither
+    );
 
     // Lightning flash
     result.scattering.rgb += LIGHTNING_FLASH_UNIFORM *

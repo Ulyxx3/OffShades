@@ -8,7 +8,10 @@
 --------------------------------------------------------------------------------
 */
 
+#ifndef SAMPLER_GAUX4_DECLARED
+#define SAMPLER_GAUX4_DECLARED
 uniform sampler2D gaux4; // Complementary cloud-water atlas
+#endif
 
 #define WATER_SPEED_MULT 1.0
 #define WATER_BUMPINESS 0.75

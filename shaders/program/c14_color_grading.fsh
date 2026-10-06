@@ -193,7 +193,11 @@ void main() {
 #ifdef BLOOM
     vec3 fog_bloom;
     vec3 bloom = get_bloom(fog_bloom);
+#if defined WORLD_NETHER
+    float bloom_intensity = 0.14 * BLOOM_INTENSITY;
+#else
     float bloom_intensity = 0.12 * BLOOM_INTENSITY;
+#endif
 
     scene_color = mix(scene_color, bloom, bloom_intensity);
 

@@ -26,6 +26,10 @@ flat in vec3 light_color;
 flat in OverworldFogParameters fog_params;
 #endif
 
+#if defined WORLD_NETHER
+uniform vec3 fogColor;
+#endif
+
 // ------------
 //   Uniforms
 // ------------
@@ -110,6 +114,10 @@ uniform float time_midnight;
 #include "/include/fog/end_fog_vl.glsl"
 #endif
 
+#if defined WORLD_NETHER
+#include "/include/fog/nether_fog_vl.glsl"
+#endif
+
 #include "/include/fog/water_fog_vl.glsl"
 #include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/encoding.glsl"
@@ -185,7 +193,12 @@ void main() {
                 dither
             );
 #elif defined WORLD_NETHER
-            mat2x3 fog = mat2x3(vec3(0.0), vec3(1.0));
+            mat2x3 fog = raymarch_nether_fog(
+                world_start_pos,
+                world_end_pos,
+                depth0 == 1.0,
+                dither
+            );
 #elif defined WORLD_END
             mat2x3 fog = raymarch_end_fog(
                 world_start_pos,

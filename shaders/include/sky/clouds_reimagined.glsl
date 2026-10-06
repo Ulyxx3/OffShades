@@ -10,12 +10,15 @@
 
 #include "/include/sky/clouds/common.glsl"
 
+#ifndef SAMPLER_GAUX4_DECLARED
+#define SAMPLER_GAUX4_DECLARED
 uniform sampler2D gaux4; // Complementary cloud-water atlas
+#endif
+
+#if !defined INCLUDE_SKY_CLOUDS_REIMAGINED_FUNCS
+#define INCLUDE_SKY_CLOUDS_REIMAGINED_FUNCS
 
 const float cloudNarrowness = 0.07;
-const float cloudStretch = 4.2;
-const float cloudTallness = cloudStretch * 2.0;
-const float cloudRoundness = 0.125;
 const float defaultCloudAltitude = 160.0;
 
 // Rounded coordinates for geometric cubic clouds (SixthSurge / EminGT)
@@ -35,6 +38,12 @@ vec3 modify_cloud_trace_pos(vec3 trace_pos, float altitude, float wind) {
     trace_pos.xz *= cloudNarrowness;
     return trace_pos;
 }
+
+#endif
+
+const float cloudStretch = 4.2;
+const float cloudTallness = cloudStretch * 2.0;
+const float cloudRoundness = 0.125;
 
 bool get_reimagined_cloud_noise(vec3 trace_pos, float altitude, float wind) {
     vec3 trace_pos_m = modify_cloud_trace_pos(trace_pos, altitude, wind);

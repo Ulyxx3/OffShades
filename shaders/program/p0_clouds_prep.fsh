@@ -96,11 +96,7 @@ void main() {
     // Cloud shadow map
 
 #ifdef CLOUD_SHADOWS
-#ifndef BLOCKY_CLOUDS
     fragment_color.xy = render_cloud_shadow_map(uv);
-#else
-    fragment_color.xy = vec2(1.0);
-#endif
 #endif
 
     // Cumulus coverage map

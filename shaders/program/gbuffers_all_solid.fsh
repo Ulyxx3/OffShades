@@ -283,6 +283,65 @@ void main() {
     //--//
 
     vec4 base_color = read_tex(gtexture) * tint;
+
+    if (material_mask == MATERIAL_LAVA) {
+        vec3 world_pos = scene_pos + cameraPosition;
+        vec3 world_normal = tbn[2];
+        float is_vertical_flow = clamp01(1.0 - abs(world_normal.y) * 1.25);
+
+        // 1. Onde macroscopique à très basse fréquence (brise la monotonie des grands lacs)
+        // Crée de vastes fleuves thermiques et des méandres doux sans couture
+        vec2 macro_flow = vec2(-frameTimeCounter * 0.025, frameTimeCounter * 0.018);
+        float macro_n1 = texture(noisetex, (world_pos.xz + macro_flow) * 0.006).r;
+        float macro_n2 = texture(noisetex, (world_pos.zx * 1.4 - macro_flow * 0.8) * 0.008).r;
+        float macro_heat = smoothstep(0.28, 0.72, macro_n1 * 0.6 + macro_n2 * 0.4);
+
+        // 2. Courants méso croisés continus dans le monde (aucun découpage par bloc)
+        vec2 lava_pos = (world_pos.xz + world_pos.xy + world_pos.zy) * 0.5;
+        lava_pos.x *= 0.5;
+
+        vec2 flow1 = vec2(-frameTimeCounter * 0.09, frameTimeCounter * 0.04);
+        vec2 flow2 = vec2(frameTimeCounter * 0.05, frameTimeCounter * 0.10);
+
+        if (is_vertical_flow > 0.2) {
+            flow1.y -= frameTimeCounter * 0.16;
+            flow2.y -= frameTimeCounter * 0.18;
+        }
+
+        float freq_mult = mix(1.0, 1.8, is_vertical_flow);
+        vec2 uv1 = (lava_pos + flow1) * (0.028 * freq_mult);
+        vec2 uv2 = (lava_pos.yx * 1.4 + flow2) * (0.025 * freq_mult);
+
+        float n1 = texture(noisetex, uv1).r;
+        float n2 = texture(noisetex, uv2).r;
+
+        float wave1 = texture(noisetex, uv1 + vec2(n2 * 0.28, -n2 * 0.22)).r;
+        float wave2 = texture(noisetex, uv2 + vec2(-n1 * 0.22, n1 * 0.28)).r;
+
+        float meso_flow = mix(wave1, wave2, 0.50 + 0.30 * sin(frameTimeCounter * 0.12 + lava_pos.x * 0.04));
+
+        // 3. Texture animée vanilla de Minecraft (détails par pixel)
+        float vanilla_luma = clamp01(dot(base_color.rgb, vec3(0.299, 0.587, 0.114)));
+
+        // 4. Combinaison fluide et continue
+        float wave_t = smoothstep(0.22, 0.72, meso_flow);
+        float pixel_t = smoothstep(0.18, 0.80, vanilla_luma);
+
+        // Dynamique globale modulée par l'onde macroscopique
+        float raw_t = clamp01(0.42 * wave_t + 0.38 * pixel_t + 0.20 * macro_heat);
+        float t = mix(mix(0.20, 0.85, raw_t), raw_t, mix(0.40, 1.0, is_vertical_flow));
+
+        // Palette de lave incandescente
+        vec3 dark_lava   = vec3(0.64, 0.11, 0.005); // Sombre fluide
+        vec3 mid_lava    = vec3(0.98, 0.36, 0.015); // Orange vif
+        vec3 bright_lava = vec3(1.00, 0.60, 0.040); // Crête dorée
+
+        vec3 magma_color = mix(dark_lava, mid_lava, smoothstep(0.12, 0.52, t));
+        magma_color = mix(magma_color, bright_lava, smoothstep(0.48, 0.88, t));
+
+        // Articulation finale des pixels animés
+        base_color.rgb = clamp01(magma_color * (0.68 + 0.48 * vanilla_luma));
+    }
 #ifdef NORMAL_MAPPING
     vec3 normal_map = read_tex(normals).xyz;
 #endif

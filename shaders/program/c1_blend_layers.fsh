@@ -72,6 +72,11 @@ uniform sampler2D colortex16; // distant water gbuffer 0
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 
+#ifndef SAMPLER_GAUX4_DECLARED
+#define SAMPLER_GAUX4_DECLARED
+uniform sampler2D gaux4; // Complementary cloud-water atlas
+#endif
+
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
@@ -456,13 +461,32 @@ void main() {
         fragment_color += fog_scattering * (1.0 - 0.85 * rainStrength);
 #endif
 
+        vec3 perturbed_dir = direction_world;
+        if (is_sky || direction_world.y > 0.0) {
+            float dist_to_surface = clamp(2.5 / max(direction_world.y, 0.08), 1.0, 30.0);
+            vec3 surface_pos = cameraPosition + direction_world * dist_to_surface;
+
+            float raw_wind = frameTimeCounter * 0.018;
+            vec2 wind = vec2(0.0, -raw_wind);
+            vec2 water_uv = 0.035 * (surface_pos.xz + surface_pos.y * 2.0);
+            vec2 water_uv_m = water_uv * 2.5;
+            vec2 wind_m = wind * 2.5;
+
+            vec2 normal_med   = texture(gaux4, water_uv_m + wind_m).rg - 0.5;
+            vec2 normal_big   = texture(gaux4, water_uv_m * 0.25 - 0.5 * wind_m).rg - 0.5;
+            vec2 wave_normal  = normal_med * 0.65 + normal_big * 0.45;
+
+            vec3 wave_offset  = vec3(wave_normal.x, 0.0, wave_normal.y) * 0.20;
+            perturbed_dir     = normalize(direction_world + wave_offset);
+        }
+
         // Gentle, pleasant distance fog (visible but not washed out)
         float water_fog;
 
         if (is_sky) {
             // Looking at the sky through the water surface (Snell's window):
-            // The water surface is transparent to the sky and sun when looking upwards!
-            float up_factor = clamp01(direction_world.y * 1.6);
+            // Smooth undulating Snell's window boundary without temporal flicker
+            float up_factor = clamp01(perturbed_dir.y * 1.6);
             float surface_dist = is_translucent ? view_distance : (3.0 / max(direction_world.y, 0.1));
             float surface_fog = 1.0 - exp(-clamp(surface_dist / 38.0, 0.0, 1.0) * 0.9);
             // Blend from clear surface transparency (looking up) to deep ocean fog (at the horizon)
@@ -482,21 +506,6 @@ void main() {
         comp_water_fog_color = mix(comp_water_fog_color, comp_water_fog_gray, rainStrength * 0.5);
 
         fragment_color = mix(fragment_color, comp_water_fog_color, water_fog);
-
-        // Soft aquatic sun shimmer around the sun disk (ONLY on sky / water surface, never through solid blocks!)
-        if (is_sky && rainStrength < 0.9) {
-            float VdotL = dot(direction_world, light_dir);
-            if (VdotL > 0.88 && direction_world.y > 0.05) {
-                float sun_proximity = linear_step(0.88, 1.0, VdotL);
-                float sun_corona = pow(sun_proximity, 6.0) * 0.35 * (1.0 - rainStrength);
-
-                vec2 shimmer_uv = front_position_world.xz * 0.06 + vec2(0.0, frameTimeCounter * 0.035);
-                float shimmer = texture(noisetex, shimmer_uv).r * 0.4 + 0.8;
-
-                vec3 sun_beam_col = light_color * vec3(0.8, 1.05, 1.3);
-                fragment_color += sun_corona * shimmer * sun_beam_col * clamp01(direction_world.y * 1.5);
-            }
-        }
 
 #ifdef BLOOMY_FOG
         bloomy_fog = (1.0 - water_fog) * 0.08;

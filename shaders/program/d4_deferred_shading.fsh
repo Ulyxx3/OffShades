@@ -603,6 +603,116 @@ void main() {
             );
         }
 #endif
+
+#if defined WORLD_NETHER
+        if (material_mask == 39u) {
+            // Orientation de la face du bloc de lave (surface horizontale ou faces verticales latérales)
+            vec3 abs_norm = abs(flat_normal);
+            vec3 t1_axis, t2_axis;
+            vec2 local_pos;
+            vec2 noise_coord;
+
+            if (abs_norm.y >= abs_norm.x && abs_norm.y >= abs_norm.z) {
+                // Face horizontale (surface du lac / dessus / dessous)
+                t1_axis = vec3(1.0, 0.0, 0.0);
+                t2_axis = vec3(0.0, 0.0, 1.0);
+                local_pos = fract(position_world.xz);
+                noise_coord = position_world.xz;
+            } else if (abs_norm.x >= abs_norm.z) {
+                // Face verticale Est / Ouest
+                t1_axis = vec3(0.0, 0.0, 1.0);
+                t2_axis = vec3(0.0, 1.0, 0.0);
+                local_pos = fract(vec2(position_world.z, position_world.y));
+                noise_coord = position_world.zy;
+            } else {
+                // Face verticale Nord / Sud
+                t1_axis = vec3(1.0, 0.0, 0.0);
+                t2_axis = vec3(0.0, 1.0, 0.0);
+                local_pos = fract(vec2(position_world.x, position_world.y));
+                noise_coord = position_world.xy;
+            }
+
+            float d_t1_neg = local_pos.x;
+            float d_t1_pos = 1.0 - local_pos.x;
+            float d_t2_neg = local_pos.y;
+            float d_t2_pos = 1.0 - local_pos.y;
+
+            float min_rock_dist = 1.0;
+
+#define CHECK_ROCK_NEIGHBOR(offset_vec, dist_val) \
+            { \
+                float d_val = (dist_val); \
+                if (d_val < min_rock_dist && d_val < 0.28) { \
+                    vec3 t_pos = position_scene + (offset_vec); \
+                    vec3 t_view = scene_to_view_space(t_pos); \
+                    vec3 t_screen = view_to_screen_space(t_view, true); \
+                    if (t_screen.z > 0.0 && t_screen.z < 1.0 && clamp01(t_screen.xy) == t_screen.xy) { \
+                        float n_depth = texture(combined_depth_tex, t_screen.xy).x; \
+                        if (n_depth < 1.0) { \
+                            vec3 n_view = screen_to_view_space(vec3(t_screen.xy, n_depth), true); \
+                            if (distance(n_view, t_view) < 0.8) { \
+                                uint n_mask = uint(255.0 * unpack_unorm_2x8(texture(colortex1, t_screen.xy).y).y); \
+                                if (n_mask != 39u) min_rock_dist = min(min_rock_dist, d_val); \
+                            } \
+                        } \
+                    } \
+                } \
+            }
+
+            // 1. Directions cardinales sur le plan de la face
+            if (d_t1_neg < 0.28) {
+                CHECK_ROCK_NEIGHBOR(-t1_axis * (d_t1_neg + 0.12), d_t1_neg);
+            }
+            if (d_t1_pos < 0.28) {
+                CHECK_ROCK_NEIGHBOR(t1_axis * (d_t1_pos + 0.12), d_t1_pos);
+            }
+            if (d_t2_neg < 0.28) {
+                CHECK_ROCK_NEIGHBOR(-t2_axis * (d_t2_neg + 0.12), d_t2_neg);
+            }
+            if (d_t2_pos < 0.28) {
+                CHECK_ROCK_NEIGHBOR(t2_axis * (d_t2_pos + 0.12), d_t2_pos);
+            }
+
+            // 2. Diagonales (coins extérieurs fermés et arrondis au rayon 0.25m)
+            if (d_t1_neg < 0.28 && d_t2_neg < 0.28) {
+                CHECK_ROCK_NEIGHBOR(-t1_axis * (d_t1_neg + 0.12) - t2_axis * (d_t2_neg + 0.12), length(vec2(d_t1_neg, d_t2_neg)));
+            }
+            if (d_t1_pos < 0.28 && d_t2_neg < 0.28) {
+                CHECK_ROCK_NEIGHBOR(t1_axis * (d_t1_pos + 0.12) - t2_axis * (d_t2_neg + 0.12), length(vec2(d_t1_pos, d_t2_neg)));
+            }
+            if (d_t1_neg < 0.28 && d_t2_pos < 0.28) {
+                CHECK_ROCK_NEIGHBOR(-t1_axis * (d_t1_neg + 0.12) + t2_axis * (d_t2_pos + 0.12), length(vec2(d_t1_neg, d_t2_pos)));
+            }
+            if (d_t1_pos < 0.28 && d_t2_pos < 0.28) {
+                CHECK_ROCK_NEIGHBOR(t1_axis * (d_t1_pos + 0.12) + t2_axis * (d_t2_pos + 0.12), length(vec2(d_t1_pos, d_t2_pos)));
+            }
+
+#undef CHECK_ROCK_NEIGHBOR
+
+            // 3. Rendu du rivage avec aléatoire organique sur 4 pixels Minecraft
+            if (min_rock_dist < 0.28) {
+                float edge_noise = texture(noisetex, noise_coord * 0.25 + vec2(frameTimeCounter * 0.012, -frameTimeCounter * 0.008)).r;
+                float fine_noise = texture(noisetex, noise_coord * 1.5).r;
+                float noise_offset = (edge_noise * 0.7 + fine_noise * 0.3 - 0.5) * 0.045;
+
+                float effective_dist = min_rock_dist + noise_offset;
+
+                if (effective_dist < 0.25) {
+                    float p = clamp01(effective_dist / 0.25); // 0.0 au contact immédiat, 1.0 à 4 pixels vers le lac
+
+                    // Pixel le plus proche de la roche (p < 0.28) : plus lumineux doré incandescent
+                    float edge_bright = smoothstep(0.28, 0.0, p);
+                    fragment_color += edge_bright * vec3(0.65, 0.30, 0.04);
+
+                    // Intérieur des 4 pixels (0.12 < p < 1.0) : transition croûte sombre vers le lac
+                    float edge_dark = smoothstep(0.12, 0.45, p) * smoothstep(1.0, 0.70, p);
+                    vec3 crust_col = vec3(0.35, 0.05, 0.002);
+                    fragment_color = mix(fragment_color, crust_col, edge_dark * (0.65 + 0.30 * fine_noise));
+                }
+            }
+        }
+#endif
+
         // Edge highlight
 
 #ifdef EDGE_HIGHLIGHT

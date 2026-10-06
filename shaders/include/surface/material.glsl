@@ -591,10 +591,9 @@ Material material_from(
 #endif
                         } else { // 39
 #ifdef HARDCODED_EMISSION
-                            // Lava
-                            material.emission = 2.0 * albedo_sqrt *
-                                (0.2 + 0.8 * isolate_hue(hsl, 30.0, 15.0)) *
-                                step(0.4, hsl.y) * hsl.z;
+                            // Lava: émission dynamique accompagnant les courants macro et les bordures sombres
+                            float emissive_contrast = smoothstep(0.12, 0.55, hsl.z);
+                            material.emission = 0.55 * albedo_sqrt * (0.22 + 0.78 * emissive_contrast);
 #endif
                         }
                     }
@@ -604,9 +603,9 @@ Material material_from(
                     if (material_mask < 42u) { // 40-42
                         if (material_mask == 40u) { // 40
 #ifdef HARDCODED_EMISSION
-                            // Medium orange emissives
+                            // Medium orange emissives (Magma block, Fire, Shroomlight)
                             material.emission =
-                                0.60 * albedo_sqrt * (0.1 + 0.9 * cube(hsl.z));
+                                0.85 * albedo_sqrt * (0.15 + 1.1 * cube(hsl.z));
 #endif
                         } else { // 41
 #ifdef HARDCODED_EMISSION
@@ -624,10 +623,10 @@ Material material_from(
 #endif
                         } else { // 43
 #ifdef HARDCODED_EMISSION
-                            // Soul lights
-                            float blue = isolate_hue(hsl, 200.0, 30.0);
-                            material.emission = 0.66 * albedo_sqrt *
-                                linear_step(0.8, 1.0, blue + hsl.z);
+                            // Soul lights (Vibrant cyan-blue spectral glow)
+                            float blue = isolate_hue(hsl, 195.0, 35.0);
+                            material.emission = 1.15 * albedo_sqrt *
+                                linear_step(0.65, 0.95, blue * 0.7 + hsl.z * 0.5);
 #endif
                         }
                     }
@@ -679,9 +678,9 @@ Material material_from(
                                 linear_step(0.5, 0.6, hsl.z);
                         } else { // 49
 #ifdef HARDCODED_EMISSION
-                            // Nether mushrooms
-                            material.emission = 0.80 * albedo_sqrt *
-                                step(0.73, 0.1 * hsl.y + 0.7 * hsl.z);
+                            // Nether mushrooms (Crimson & Warped fungus bioluminescence)
+                            material.emission = 0.90 * albedo_sqrt *
+                                step(0.65, 0.2 * hsl.y + 0.8 * hsl.z);
 #endif
                         }
                     } else { // 50-52
