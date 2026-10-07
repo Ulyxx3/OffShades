@@ -1,0 +1,46 @@
+# End Cosmic Sky & Orbits (French)
+screen.end_sky                         = Ciel Cosmique & Orbites (End)
+
+option.SATURN_REVOLUTION_TIME          = Période d'orbite Saturne
+option.SATURN_REVOLUTION_TIME.comment  = Temps nécessaire pour accomplir une révolution complète (360°) dans les anneaux autour de Saturne. De 10 secondes (ultra rapide) à 1 heure (majestueux et lent).
+suffix.SATURN_REVOLUTION_TIME          = s
+value.SATURN_REVOLUTION_TIME.10        = 10s
+value.SATURN_REVOLUTION_TIME.15        = 15s
+value.SATURN_REVOLUTION_TIME.20        = 20s
+value.SATURN_REVOLUTION_TIME.30        = 30s
+value.SATURN_REVOLUTION_TIME.45        = 45s
+value.SATURN_REVOLUTION_TIME.60        = 1 min
+value.SATURN_REVOLUTION_TIME.90        = 1m 30s
+value.SATURN_REVOLUTION_TIME.120       = 2 min
+value.SATURN_REVOLUTION_TIME.180       = 3 min
+value.SATURN_REVOLUTION_TIME.240       = 4 min
+value.SATURN_REVOLUTION_TIME.300       = 5 min
+value.SATURN_REVOLUTION_TIME.450       = 7m 30s
+value.SATURN_REVOLUTION_TIME.600       = 10 min
+value.SATURN_REVOLUTION_TIME.900       = 15 min
+value.SATURN_REVOLUTION_TIME.1200      = 20 min
+value.SATURN_REVOLUTION_TIME.1800      = 30 min
+value.SATURN_REVOLUTION_TIME.2700      = 45 min
+value.SATURN_REVOLUTION_TIME.3600      = 1 heure
+
+option.PLANETS_REVOLUTION_TIME         = Période d'orbite Planètes
+option.PLANETS_REVOLUTION_TIME.comment = Temps de révolution de base des planètes autour du Soleil. Permet de contempler des éclipses et transits solaires toutes les 10 secondes ou étalés sur 1 heure.
+suffix.PLANETS_REVOLUTION_TIME         = s
+value.PLANETS_REVOLUTION_TIME.10       = 10s
+value.PLANETS_REVOLUTION_TIME.15       = 15s
+value.PLANETS_REVOLUTION_TIME.20       = 20s
+value.PLANETS_REVOLUTION_TIME.30       = 30s
+value.PLANETS_REVOLUTION_TIME.45       = 45s
+value.PLANETS_REVOLUTION_TIME.60       = 1 min
+value.PLANETS_REVOLUTION_TIME.90       = 1m 30s
+value.PLANETS_REVOLUTION_TIME.120      = 2 min
+value.PLANETS_REVOLUTION_TIME.180      = 3 min
+value.PLANETS_REVOLUTION_TIME.240      = 4 min
+value.PLANETS_REVOLUTION_TIME.300      = 5 min
+value.PLANETS_REVOLUTION_TIME.450      = 7m 30s
+value.PLANETS_REVOLUTION_TIME.600      = 10 min
+value.PLANETS_REVOLUTION_TIME.900      = 15 min
+value.PLANETS_REVOLUTION_TIME.1200     = 20 min
+value.PLANETS_REVOLUTION_TIME.1800     = 30 min
+value.PLANETS_REVOLUTION_TIME.2700     = 45 min
+value.PLANETS_REVOLUTION_TIME.3600     = 1 heure

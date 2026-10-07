@@ -661,9 +661,13 @@ Material material_from(
 #endif
                         } else { // 47
 #ifdef HARDCODED_EMISSION
-                            // Pink glow
-                            material.emission =
-                                vec3(0.75) * isolate_hue(hsl, 310.0, 50.0);
+                            // Pink / purple cosmic glow (End crystal, Ender Dragon, crying obsidian)
+                            float purple_glow = isolate_hue(hsl, 310.0, 50.0);
+#if defined WORLD_END
+                            material.emission = vec3(1.6, 0.45, 2.0) * (0.4 + 1.2 * purple_glow) * step(0.35, hsl.z);
+#else
+                            material.emission = vec3(0.75) * purple_glow;
+#endif
 #endif
                         }
                     }

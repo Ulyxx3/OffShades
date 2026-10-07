@@ -157,6 +157,10 @@ uniform mat4 shadowModelViewInverse;
 #endif
 #endif
 
+#ifdef WORLD_END
+#include "/include/sky/lens_flare.glsl"
+#endif
+
 #ifdef LOD_MOD_ACTIVE
 #include "/include/misc/distant_water.glsl"
 #endif
@@ -559,5 +563,18 @@ void main() {
 #elif defined WORLD_END
     bloomy_fog = bloomy_fog * 0.5 + 0.5;
 #endif
+#endif
+
+#if defined WORLD_END
+    vec3 end_sun = get_end_sun_dir(sun_dir);
+    vec3 lens_flare = calculate_lens_flare(
+        uv,
+        end_sun,
+        gbufferModelView,
+        gbufferProjection,
+        depthtex0,
+        view_res
+    );
+    fragment_color += lens_flare;
 #endif
 }

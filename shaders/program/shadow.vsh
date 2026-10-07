@@ -55,6 +55,7 @@ uniform float wetness;
 
 uniform vec2 taa_offset;
 uniform vec3 light_dir;
+uniform vec3 sun_dir;
 
 uniform float world_age;
 uniform float time_sunrise;
@@ -76,6 +77,10 @@ uniform int renderStage;
 
 #include "/include/lighting/shadows/distortion.glsl"
 #include "/include/vertex/displacement.glsl"
+
+#if defined WORLD_END
+#include "/include/sky/end_eclipse.glsl"
+#endif
 
 #ifdef COLORED_LIGHTS
 #include "/include/lighting/lpv/voxelization.glsl"
@@ -116,8 +121,25 @@ void main() {
     scene_pos = pos;
 #endif
 
+#if defined WORLD_END
+    vec3 end_sun = get_end_sun_dir(sun_dir);
+    vec3 orig_sun = normalize(shadowModelViewInverse[2].xyz);
+    if (orig_sun.y < 0.0) orig_sun = -orig_sun;
+    mat3 endShadowRot = get_end_shadow_rotation(end_sun, orig_sun);
+    pos = endShadowRot * pos;
+#endif
+
     pos = transform(shadowModelView, pos);
-    ;
+#else
+#if defined WORLD_END
+    pos = transform(shadowModelViewInverse, pos);
+    vec3 end_sun = get_end_sun_dir(sun_dir);
+    vec3 orig_sun = normalize(shadowModelViewInverse[2].xyz);
+    if (orig_sun.y < 0.0) orig_sun = -orig_sun;
+    mat3 endShadowRot = get_end_shadow_rotation(end_sun, orig_sun);
+    pos = endShadowRot * pos;
+    pos = transform(shadowModelView, pos);
+#endif
 #endif
 
     vec3 shadow_clip_pos = project_ortho(gl_ProjectionMatrix, pos);

@@ -29,8 +29,8 @@ Ce document récapitule l'état actuel du shaderpack **OffShades** et liste les 
   - Premier plan cristallin ($0-10\,\text{m}$) et profondeur océanique progressive.
   - Puits de lumière volumétriques (godrays) sous l'eau dans `water_fog_vl.glsl`.
   - Caustiques animées projetées sur le sable et les fonds marins (`shadow.fsh`).
-  - Transparence de la surface vers le ciel depuis sous l'eau (Fenêtre de Snell) et rond lumineux du soleil déformés et ondulants selon les vagues de surface multi-octaves.
-  - Réfraction aquatique animée du ciel, des nuages et de la lumière volumétrique sous-marine.
+  - Transparence de la surface vers le ciel depuis sous l'eau (Fenêtre de Snell) : frontière ondulante animée en temps réel par les vagues multi-octaves sans aucun artefact de dédoublement ni ghosting sur les entités (dauphins, poissons).
+  - Suppression complète des duplications de soleil (`sun_corona`) et du scintillement de brume sous-marine.
   - Occlusion parfaite du soleil derrière les blocs solides sous l'eau.
 - [x] **Météo / Pluie** :
   - Atténuation de la luminosité et disparition des godrays sous l'eau pendant la pluie.
@@ -76,7 +76,57 @@ Dossier source de référence : `inspiration_shaders/Solas Shader V3.7b/`
 
 ---
 
-## 🔮 3. Étapes Futures (End Dimension)
-- [ ] **End (IterationT 3.2.0)** :
-  - Atmosphère cosmique et mystique d'IterationT dans `world1/` (`WORLD_END`).
-  - Nébuleuses, ciel de l'End personnalisé et éclairage de l'Ender Dragon / îles.
+## 🪐 3. Réalisations de l'End (Inspiré d'IterationT 3.2.0 / 3.3)
+
+Dossier source de référence : `inspiration_shaders/iterationT 3.2.0 (1)/`
+
+### Réalisations pour l'End (`world1/` / `WORLD_END`)
+- [x] **Perspective spatiale sur les Anneaux de Saturne (IterationT Style)** :
+  - Création de `shaders/include/sky/end_cosmic_sky.glsl`.
+  - Positionnement de l'observateur au ras et à l'intérieur du plan orbital des anneaux ($35\,000\,\text{km}$ du centre, entre $31\,000$ et $53\,000\,\text{km}$).
+  - Les îles de l'End flottent au cœur de la ceinture d'astéroïdes et de poussières de glace : le plan des anneaux s'étend comme une autoroute cosmique étincelante à l'horizon.
+  - Rendu de la planète géante gazeuse avec bandes nuageuses latitudinales animées, vortex polaire et diffusion de Lommel-Seeliger / Chandrasekhar ($H$-function `ppss`).
+  - Anneaux texturés multi-octaves échantillonnés radialement avec division de Cassini, fentes d'Encke et diffusion avant/arrière de Mie sur les particules de glace.
+  - Ombres croisées 3D bidirectionnelles : ombre portée tranchante des anneaux sur les nuages de Saturne, et ombre elliptique géante de Saturne projetée sur les anneaux.
+- [x] **Source lumineuse solaire & Lens Flares (Remplacement du trou noir)** :
+  - Disque solaire radiant avec assombrissement au limbe d'Eddington ($65\times$ HDR luminance), filaments coronaux et lueur diffuse.
+  - Système de Lens Flare anamorphique cinématique dans `shaders/include/sky/lens_flare.glsl` intégré dans `c1_blend_layers.fsh` :
+    - Étoilement et aigrettes de diffraction anamorphiques (`gl`).
+    - Réflexions d'optiques multiples (`orb`) avec aberration chromatique (dispersion $R, G, B$).
+    - Anneaux de diffraction colorés (`flare_ring`).
+    - Occlusion en temps réel contre `depthtex0` (`texelFetch`) : le flare disparaît proprement derrière les piliers d'obsidienne et les îles.
+  - Reflets spéculaires intenses du soleil et du ciel cosmique synchronisés dans la carte du ciel (`d0_sky_map.fsh`) et sur les surfaces (`d4_deferred_shading.fsh`).
+- [x] **Le Système Solaire & Traçage des Orbites Elliptiques** :
+  - 7 planètes supplémentaires modélisées en sphères 3D texturées avec phases lumineuses réalistes selon l'angle au Soleil :
+    - *Mercure* : Disque gris rocheux cratérisé.
+    - *Vénus* : Balise dorée étincelante à atmosphère dense.
+    - *Terre* : Bille bleue océanique, continents vert/ocre, tourbillons nuageux animés, limbe atmosphérique de Rayleigh et Lune compagne.
+    - *Mars* : Planète rouge martienne, maria sombres et calottes polaires blanches.
+    - *Jupiter* : Colosse gazeux aux bandes zonales ambrées et Grande Tache Rouge.
+    - *Uranus* : Géante de glace aigue-marine / cyan.
+    - *Neptune* : Disque bleu azur profond et cirrus de méthane.
+  - Traçage cartographique sci-fi des trajectoires orbitales képlériennes (ellipses polaires $r(\theta) = \frac{a(1-e^2)}{1+e\cos(\theta-\omega)}$) sous forme de filaments lumineux anti-aliasés aux teintes spectrales avec impulsions subtiles.
+- [x] **Ambiance Cosmique & Suppression des Voiles Parasites** :
+  - Ciel spatial noir profond pur (suppression des voiles verts, des traînées violettes et du brouillard sous les îles de l'End).
+  - Champ d'étoiles 3D cellulaire sans distorsion polaire avec spectre de corps noir physique ($3600\,\text{K} - 9500\,\text{K}$) et scintillement astronomique.
+  - Opacité 100% de Saturne et des anneaux denses bloquant intégralement les étoiles d'arrière-plan.
+  - Palette chaude et harmonieuse : Saturne aux nuances de miel doré et caramel ocre, anneaux champagne/miel glacé.
+- [x] **Soleil Radiant en Plasma Incandescent & Éclipses Planétaires** :
+  - Disque solaire compact et équilibré ($R = 0.040$), convection turbulente multi-octaves animée (granulation solaire SDO), filaments magnétiques, protubérances et éruptions au limbe.
+  - Couronne resserrée évitant la surexposition du ciel et préservant le vide cosmique.
+  - Système orbital 3D en perspective : les planètes intérieures (Mercure, Vénus, Terre + Lune) transitent périodiquement en avant du Soleil, créant de véritables éclipses solaires (silhouettes sombres rétro-éclairées défilant sur le disque solaire).
+  - Occultation naturelle des planètes passant derrière le disque solaire.
+  - **Gestion stricte des plans de profondeur (Z-Ordering cosmique)** :
+    - Étoiles, Soleil radiant et Système solaire positionnés en arrière-plan distant.
+    - Saturne 100% opaque (occultation totale du fond stellaire et solaire).
+    - Anneaux semi-transparents et chauds (poussière ocre-dorée `vec3(0.88, 0.72, 0.50)` à intensité calibrée $0.035$, transmittance `exp2(-ring * 2.5)` laissant passer les étoiles et le Soleil sans brûler en blanc).
+    - Ombres profondes et réalistes lors de l'éclipse : face sombre de Saturne plongée dans le noir absolu (modèle Hapke/Chandrasekhar `planetary_ppss`), masquage du voile atmosphérique sur la face visible avec croissant rétro-éclairé au limbe.
+    - Projection nette et détaillée de l'ombre des anneaux sur les nuages de Saturne (`shadowExtinction = exp(-pow(...) * smoothstep(...))`).
+    - Extinction automatique du Lens Flare anamorphique lorsque le Soleil est masqué par le corps de Saturne.
+  - Sliders de temps de révolution configurables dans les options du shader (`screen.end_sky`) de 10 secondes (ultra rapide) à 1 heure (majestueux) :
+    - `SATURN_REVOLUTION_TIME` : période de révolution complète (360°) dans les anneaux autour de Saturne.
+    - `PLANETS_REVOLUTION_TIME` : période de révolution de référence des planètes autour du Soleil.
+- [x] **Éclairage des Îles de l'End & Boss Fight** :
+  - Calibration solaire spatiale dans `settings.glsl` : lumière directe solaire vive (`END_LIGHT_I 1.15`, teintes blanches pures) et contraste d'ombre spatial (`END_AMBIENT_I 0.22`).
+  - Spéculaire et SSR configurés pour l'End Stone (`block.10017`), les briques de l'End, les blocs de purpur, et l'obsidienne pleureuse dans `block.properties`.
+  - Émission et bloom boostés pour les Cristaux de l'End (`entity.10047`), les yeux et la tête de l'Ender Dragon (`entity.properties` & `material.glsl`).

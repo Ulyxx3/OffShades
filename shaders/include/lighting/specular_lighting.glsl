@@ -94,7 +94,7 @@ vec3 get_specular_highlight(
         return vec3(0.0);
     }
 #else
-    const float light_radius = SUN_ANGULAR_RADIUS * degree;
+    const float light_radius = 0.040;
 #endif
 
     vec3 fresnel;
@@ -185,7 +185,7 @@ vec3 sample_ggx_vndf(vec3 viewer_dir, vec2 alpha, vec2 hash) {
 }
 
 vec3 get_sky_reflection(vec3 ray_dir, float skylight, vec3 hit_pos) {
-#if defined WORLD_OVERWORLD
+#if defined WORLD_OVERWORLD || defined WORLD_END
     bool hit_sky = clamp01(hit_pos.xy) == hit_pos.xy && hit_pos.z >= 1.0;
     float skylight_falloff =
         hit_sky ? 1.0 : pow12(linear_step(0.0, 0.75, skylight));

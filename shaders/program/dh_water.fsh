@@ -249,13 +249,19 @@ void main() {
 
     // Shadows
 
+#if defined WORLD_END
+    vec3 actual_light_dir = get_end_sun_dir(sun_dir);
+#else
+    vec3 actual_light_dir = light_dir;
+#endif
+
 #ifndef NO_NORMAL
-    float NoL = dot(normal, light_dir);
+    float NoL = dot(normal, actual_light_dir);
 #else
     float NoL = 1.0;
 #endif
     float NoV = clamp01(dot(normal, -world_dir));
-    float LoV = dot(light_dir, -world_dir);
+    float LoV = dot(actual_light_dir, -world_dir);
     float halfway_norm = inversesqrt(2.0 * LoV + 2.0);
     float NoH = (NoL + NoV) * halfway_norm;
     float LoH = LoV * halfway_norm + halfway_norm;

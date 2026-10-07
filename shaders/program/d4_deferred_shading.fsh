@@ -465,9 +465,15 @@ void main() {
 
         // Calculate lighting dot products
 
-        float NoL = dot(normal, light_dir);
+#if defined WORLD_END
+        vec3 actual_light_dir = get_end_sun_dir(sun_dir);
+#else
+        vec3 actual_light_dir = light_dir;
+#endif
+
+        float NoL = dot(normal, actual_light_dir);
         float NoV = clamp01(dot(normal, -direction_world));
-        float LoV = dot(light_dir, -direction_world);
+        float LoV = dot(actual_light_dir, -direction_world);
         float halfway_norm = inversesqrt(2.0 * LoV + 2.0);
         float NoH = (NoL + NoV) * halfway_norm;
         float LoH = LoV * halfway_norm + halfway_norm;

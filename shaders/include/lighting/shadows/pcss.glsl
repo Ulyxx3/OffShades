@@ -11,6 +11,10 @@
 #include "/include/utility/rotation.glsl"
 #include "/include/utility/sampling.glsl"
 
+#if defined WORLD_END
+#include "/include/sky/end_eclipse.glsl"
+#endif
+
 const ivec2[9] blur_kernel_offsets_3x3 = ivec2[9](
     ivec2(-1, -1),
     ivec2(0, -1),
@@ -193,6 +197,16 @@ vec3 get_filtered_shadows(
     inout float sss_depth
 ) {
     sss_depth = 0.0;
+
+#if defined WORLD_END
+    vec3 end_sun = get_end_sun_dir(sun_dir);
+    vec3 orig_sun = normalize(shadowModelViewInverse[2].xyz);
+    if (orig_sun.y < 0.0) orig_sun = -orig_sun;
+    mat3 endShadowRot = get_end_shadow_rotation(end_sun, orig_sun);
+
+    scene_pos = endShadowRot * scene_pos;
+    flat_normal = endShadowRot * flat_normal;
+#endif
 
     float NoL = dot(flat_normal, light_dir);
 
