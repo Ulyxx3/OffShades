@@ -44,5 +44,7 @@ OffShades is developed from some of the code of the inspirations:
 
 ## 📄 License
 
-MIT — Feel free to learn from it, but please credit if you redistribute.
-by Ulyxx3
+OffShades is distributed under the **GNU General Public License v3.0 (GPL-3.0)**.
+See the [LICENSE](LICENSE) file for the complete terms.
+
+Copyright © Ulyxx3.
