@@ -6,7 +6,7 @@
 
 OffShades is an experimental shaderpack focused on warm skies, readable vanilla-style terrain, and atmospheric lighting without losing Minecraft's identity.
 
-## ✨ Artistic Direction
+## Artistic Direction
 
 | Feature | Goal |
 |---|---|
@@ -19,7 +19,7 @@ OffShades is an experimental shaderpack focused on warm skies, readable vanilla-
 | **Nether** | Solas Shader inspired lava and atmosphere |
 | **End** | Iteration Inspired End but with full solar system instead of only saturn |
 
-## 🎨 Inspirations
+## Inspirations
 
 OffShades is developed from some of the code of the inspirations:
 
@@ -30,19 +30,19 @@ OffShades is developed from some of the code of the inspirations:
 
 > **Note:** Iteration's original shaderpack is not maintained in an official public GitHub repository. Prefer the author's download page and treat third-party mirrors or patches as community resources.
 
-## 🔧 Compatibility
+## Compatibility
 
 - **Loader**: [Iris Shaders](https://irisshaders.dev/) 1.7+ (recommended) / OptiFine
 - **Minecraft**: 1.20+
 - **OpenGL**: 4.0+
 
-## 🚀 Installation
+## Installation
 
 1. Download the latest release (or clone this repo)
 2. Place the `OffShades` folder (or `.zip`) in your `.minecraft/shaderpacks/` directory
 3. In-game: `Options → Video Settings → Shader Packs → OffShades`
 
-## 📄 License
+## License
 
 OffShades is distributed under the **GNU General Public License v3.0 (GPL-3.0)**.
 See the [LICENSE](LICENSE) file for the complete terms.
