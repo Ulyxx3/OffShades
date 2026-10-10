@@ -1,5 +1,3 @@
-# OffShades 🌅
-
 <p align="center">
   <img src="assets/Sunset.png" alt="OffShades sunset banner">
 </p>
