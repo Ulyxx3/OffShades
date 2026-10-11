@@ -236,7 +236,7 @@ vec4 get_clouds_and_aurora(
 
     // Clouds
 
-#ifndef BLOCKY_CLOUDS
+#if defined VOLUMETRIC_CLOUDS && !defined BLOCKY_CLOUDS
     CloudsResult result = draw_reimagined_box_clouds(
         cameraPosition,
         ray_dir,

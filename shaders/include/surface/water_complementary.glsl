@@ -13,11 +13,21 @@
 uniform sampler2D gaux4; // Complementary cloud-water atlas
 #endif
 
-#define WATER_SPEED_MULT 1.0
+#ifndef WATER_SPEED_MULT
+#define WATER_SPEED_MULT 1.00
+#endif
+#ifndef WATER_BUMPINESS
 #define WATER_BUMPINESS 0.75
-#define WATER_BUMP_MED 1.0
+#endif
+#ifndef WATER_BUMP_MED
+#define WATER_BUMP_MED 1.00
+#endif
+#ifndef WATER_BUMP_SMALL
 #define WATER_BUMP_SMALL 0.35
+#endif
+#ifndef WATER_BUMP_BIG
 #define WATER_BUMP_BIG 0.25
+#endif
 
 // Computes Complementary Reimagined water surface normal & ripples
 vec3 get_complementary_water_normal(
@@ -40,11 +50,13 @@ vec3 get_complementary_water_normal(
     vec3 view_dir_tangent = view_dir_world * tbn_matrix;
     vec2 parallax_mult = -0.008 * view_dir_tangent.xy / max(abs(view_dir_tangent.z), 0.001);
 
+#ifdef WATER_PARALLAX
     // Parallax mapping (4 steps, as in Complementary Reimagined)
     for (int i = 0; i < 4; i++) {
         water_pos_m += parallax_mult * texture(gaux4, water_pos_m - wind_m).a;
         water_pos_m += parallax_mult * texture(gaux4, water_pos_m * 0.25 - 0.5 * wind_m).a;
     }
+#endif
 
     // Multi-octave normals from Complementary Reimagined
     vec2 normal_med   = texture(gaux4, water_pos_m + wind_m).rg - 0.5;
@@ -134,6 +146,7 @@ vec4 apply_complementary_water_foam(
     float skylight,
     vec3 world_pos
 ) {
+#ifdef WATER_FOAM
     if (water_depth_dist < 0.35) {
         float foam_threshold = 0.28;
         float foam = pow(clamp((foam_threshold - water_depth_dist) / foam_threshold, 0.0, 1.0), 2.0);
@@ -146,6 +159,7 @@ vec4 apply_complementary_water_foam(
         vec4 foam_color = vec4(0.90, 0.94, 0.98, 0.90);
         current_color = mix(current_color, foam_color, foam * 0.8);
     }
+#endif
     return current_color;
 }
 

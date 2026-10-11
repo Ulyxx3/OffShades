@@ -28,6 +28,15 @@ void water_waves_setup(
     out mat2 wave_rot,
     out float t
 ) {
+#ifndef WATER_WAVE_SPEED_STILL
+#define WATER_WAVE_SPEED_STILL 1.00
+#define WATER_WAVE_SPEED_FLOWING 1.00
+#define WATER_WAVE_FREQUENCY 1.00
+#define WATER_WAVE_PERSISTENCE 1.00
+#define WATER_WAVE_LACUNARITY 1.00
+#define WATER_WAVE_ITERATIONS 3
+#define WATER_WAVE_STRENGTH 1.00
+#endif
     const float wave_speed_still = 0.5 * WATER_WAVE_SPEED_STILL;
     const float wave_speed_flowing = 0.7 * WATER_WAVE_SPEED_FLOWING;
     const float wave_angle = 30.0 * degree;

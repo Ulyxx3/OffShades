@@ -93,9 +93,13 @@ vec3 clouds_aerial_perspective(
 ) {
     vec3 air_transmittance;
 
+#ifndef CLOUDS_AERIAL_PERSPECTIVE_BOOST
+#define CLOUDS_AERIAL_PERSPECTIVE_BOOST 0
+#endif
+
 #if CLOUDS_AERIAL_PERSPECTIVE_BOOST != 0
     ray_end =
-        mix(ray_origin, ray_end, float(1 << CLOUDS_AERIAL_PERSPECTIVE_BOOST));
+        mix(ray_origin, ray_end, float(1 << int(CLOUDS_AERIAL_PERSPECTIVE_BOOST)));
 #endif
 
     if (length_squared(ray_origin) < length_squared(ray_end)) {

@@ -133,6 +133,9 @@ uniform sampler3D light_sampler_b;
 
 void main() {
     ivec2 fog_texel = ivec2(gl_FragCoord.xy);
+#ifndef VL_RENDER_SCALE
+#define VL_RENDER_SCALE 0.50
+#endif
     ivec2 view_texel =
         ivec2(gl_FragCoord.xy * taau_render_scale * rcp(VL_RENDER_SCALE));
 
@@ -193,12 +196,16 @@ void main() {
                 dither
             );
 #elif defined WORLD_NETHER
+#if defined NETHER_VL
             mat2x3 fog = raymarch_nether_fog(
                 world_start_pos,
                 world_end_pos,
                 depth0 == 1.0,
                 dither
             );
+#else
+            mat2x3 fog = mat2x3(vec3(0.0), vec3(1.0));
+#endif
 #elif defined WORLD_END
             mat2x3 fog = raymarch_end_fog(
                 world_start_pos,

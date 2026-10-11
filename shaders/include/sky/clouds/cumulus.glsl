@@ -6,6 +6,31 @@
 #include "common.glsl"
 #include "coverage_map.glsl"
 
+#ifndef CLOUDS_CUMULUS_SIZE
+#define CLOUDS_CUMULUS_SIZE 1.00
+#endif
+#ifndef CLOUDS_CUMULUS_WIND_SPEED
+#define CLOUDS_CUMULUS_WIND_SPEED 20.0
+#endif
+#ifndef CLOUDS_CUMULUS_WIND_ANGLE
+#define CLOUDS_CUMULUS_WIND_ANGLE 45.0
+#endif
+#ifndef CLOUDS_CUMULUS_PRIMARY_STEPS_H
+#define CLOUDS_CUMULUS_PRIMARY_STEPS_H 16
+#endif
+#ifndef CLOUDS_CUMULUS_PRIMARY_STEPS_Z
+#define CLOUDS_CUMULUS_PRIMARY_STEPS_Z 16
+#endif
+#ifndef CLOUDS_CUMULUS_LIGHTING_STEPS
+#define CLOUDS_CUMULUS_LIGHTING_STEPS 4
+#endif
+#ifndef CLOUDS_CUMULUS_AMBIENT_STEPS
+#define CLOUDS_CUMULUS_AMBIENT_STEPS 2
+#endif
+#ifndef CLOUDS_CUMULUS_DENSITY
+#define CLOUDS_CUMULUS_DENSITY 1.00
+#endif
+
 // altitude_fraction := 0 at the bottom of the cloud layer and 1 at the top
 float clouds_cumulus_altitude_shaping(float density, float altitude_fraction) {
     // Stratus shapes

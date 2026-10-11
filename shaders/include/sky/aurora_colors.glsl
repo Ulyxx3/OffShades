@@ -72,20 +72,20 @@ mat2x3 get_aurora_colors() {
 float get_aurora_amount() {
     float night = smoothstep(0.0, 0.2, -sun_dir.y);
 
-#if AURORA_NORMAL == AURORA_NEVER
-    float aurora_normal = 0.0;
+#if AURORA_NORMAL == AURORA_ALWAYS
+    float aurora_normal = 1.0;
 #elif AURORA_NORMAL == AURORA_RARELY
     float aurora_normal = float(lowbias32(uint(worldDay)) % 5 == 1);
-#elif AURORA_NORMAL == AURORA_ALWAYS
-    float aurora_normal = 1.0;
+#else
+    float aurora_normal = 0.0;
 #endif
 
-#if AURORA_SNOW == AURORA_NEVER
-    float aurora_snow = 0.0;
+#if AURORA_SNOW == AURORA_ALWAYS
+    float aurora_snow = 1.0;
 #elif AURORA_SNOW == AURORA_RARELY
     float aurora_snow = float(lowbias32(uint(worldDay)) % 5 == 1);
-#elif AURORA_SNOW == AURORA_ALWAYS
-    float aurora_snow = 1.0;
+#else
+    float aurora_snow = 0.0;
 #endif
 
     return night * mix(aurora_normal, aurora_snow, biome_may_snow);

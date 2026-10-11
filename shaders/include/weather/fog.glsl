@@ -59,6 +59,13 @@ OverworldFogParameters get_fog_parameters(Weather weather) {
             AIR_FOG_RAYLEIGH_B_SWAMP
         )) *
         AIR_FOG_RAYLEIGH_DENSITY_SWAMP;
+#ifndef AIR_FOG_RAYLEIGH_DENSITY_PALE_GARDEN
+#define AIR_FOG_RAYLEIGH_DENSITY_PALE_GARDEN 0.03
+#define AIR_FOG_RAYLEIGH_R_PALE_GARDEN       0.90
+#define AIR_FOG_RAYLEIGH_G_PALE_GARDEN       0.80
+#define AIR_FOG_RAYLEIGH_B_PALE_GARDEN       1.00
+#endif
+
     const vec3 rayleigh_pale_garden =
         from_srgb(vec3(
             AIR_FOG_RAYLEIGH_R_PALE_GARDEN,

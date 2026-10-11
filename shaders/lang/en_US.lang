@@ -1,18 +1,20 @@
 # Profiles
 
-profile.low                            = §eLow
-profile.medium                         = §aMedium
+profile.potato                         = §ePotato
+profile.medium                         = §aMedium (Default)
 profile.high                           = §bHigh
-profile.ultra                          = §dUltra
+profile.extreme                        = §dExtreme
 
 # Screens
 
 screen.world                           = World
 screen.lighting                        = Lighting
-screen.sky                             = Sky
-screen.fog                             = Fog
-screen.materials                       = Materials
+screen.sky_clouds                      = Sky & Clouds
+screen.fog                             = Fog & Atmosphere
+screen.nether                          = Nether (Solas)
+screen.end                             = The End (Cosmic Sky)
 screen.water                           = Water
+screen.materials                       = Materials
 screen.post                            = Post-Processing
 screen.misc                            = Misc
 
@@ -68,11 +70,11 @@ screen.nether_color                    = Static Color
 
 screen.distance_view                   = Distance View
 
-option.INFO                            = Photon Shaders
-value.INFO.0                           = §eby SixthSurge
-value.INFO.1                           = §aby SixthSurge
-value.INFO.2                           = §bby SixthSurge
-value.INFO.3                           = §dby SixthSurge
+option.INFO                            = OffShades
+value.INFO.0                           = §ePotato
+value.INFO.1                           = §aMedium
+value.INFO.2                           = §bHigh
+value.INFO.3                           = §dExtreme
 
 # World settings
 
@@ -191,12 +193,31 @@ option.SKYLIGHT_I                      = Skylight Intensity
 option.BOUNCED_LIGHT_I                 = Bounced Sunlight Intensity
 option.CAVE_LIGHTING_I                 = Cave Brightness
 option.LIGHTNING_FLASH                 = Lightning Flash
+option.NETHER_VL                        = 3D Volumetric Smoke
+option.NETHER_VL.comment                = 3D raymarched volumetric smoke plumes and convective atmospheric scattering inspired by Solas Shader
+option.NETHER_SMOKE_STEPS               = Smoke Raymarching Quality
+option.NETHER_SMOKE_STEPS.comment       = Number of raymarching steps for Nether volumetric smoke plumes
+option.NETHER_SMOKE_STRENGTH            = Smoke Plume Density
+option.NETHER_SMOKE_STRENGTH.comment    = Density and thickness of rising smoke plumes
+option.NETHER_SMOKE_SPEED               = Smoke Rise Speed
+option.NETHER_SMOKE_SPEED.comment       = Convective updraft speed of smoke plumes in the Nether
 option.NETHER_USE_BIOME_COLOR          = Use Biome Color
 option.NETHER_I                        = Ambient Intensity
 option.NETHER_S                        = Ambient Saturation
 option.NETHER_R                        = §cRed
 option.NETHER_G                        = §aGreen
 option.NETHER_B                        = §9Blue
+
+option.END_COSMIC_SKY                   = Cosmic Sky
+option.END_COSMIC_SKY.comment           = IterationT-inspired deep space cosmic sky with Saturn, rings, radiant star, and solar system
+option.END_PLANETS                      = Orbiting Planets
+option.END_PLANETS.comment              = 3D perspective planets orbiting the Sun with periodic transits and eclipses
+option.END_ORBITS                       = Keplerian Orbits
+option.END_ORBITS.comment               = Glowing sci-fi orbital trajectory lines tracing Keplerian paths
+option.END_LENS_FLARE                   = Anamorphic Lens Flare
+option.END_LENS_FLARE.comment           = Cinematic anamorphic lens flare starburst and ghost reflections around the radiant star
+option.END_LENS_FLARE_INTENSITY         = Lens Flare Intensity
+option.END_LENS_FLARE_INTENSITY.comment = Brightness multiplier for the anamorphic lens flare
 option.END_LIGHT_R                     = §cRed
 option.END_LIGHT_G                     = §aGreen
 option.END_LIGHT_B                     = §9Blue
@@ -274,114 +295,26 @@ option.LIGHTNING_FLASH                 = Lightning Flash
 option.RAINBOWS                        = Rainbows
 option.END_SUN_EFFECT                  = End Sun Effect
 
-# Clouds
-option.CLOUDS_CUMULUS                       = Cumulus Clouds
-option.CLOUDS_CUMULUS.comment               = Low-altitude volumetric clouds made to resemble cumulus clouds
-option.CLOUDS_CUMULUS_PRIMARY_STEPS_H       = Primary Steps - Horizon
-option.CLOUDS_CUMULUS_PRIMARY_STEPS_Z       = Primary Steps - Zenith
-option.CLOUDS_CUMULUS_LIGHTING_STEPS        = Lighting Steps
-option.CLOUDS_CUMULUS_AMBIENT_STEPS         = Ambient Steps
-option.CLOUDS_CUMULUS_ALTITUDE              = Altitude
-suffix.CLOUDS_CUMULUS_ALTITUDE              = m
-option.CLOUDS_CUMULUS_THICKNESS             = Thickness
-option.CLOUDS_CUMULUS_DENSITY               = Density
-option.CLOUDS_CUMULUS_COVERAGE              = Coverage
-option.CLOUDS_CUMULUS_SIZE                  = Size
-option.CLOUDS_CUMULUS_DETAIL_STRENGTH       = Detail Strength
-option.CLOUDS_CUMULUS_WIND_SPEED            = Wind Speed
-suffix.CLOUDS_CUMULUS_WIND_SPEED            = m/s
-option.CLOUDS_CUMULUS_WIND_ANGLE            = Wind Angle
-suffix.CLOUDS_CUMULUS_WIND_ANGLE            = °
-option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE         = Precompute Local Coverage
-option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE.comment = Aggressive optimization for cumulus clouds. Reduces the maximum distance clouds can be drawn and can cause some artifacts with cloud shapes morphing when the camera moves. Disable for taking screenshots above the clouds
+# Clouds (Complementary Reimagined Volumetric Box Clouds)
+option.VOLUMETRIC_CLOUDS                = Volumetric Clouds
+option.VOLUMETRIC_CLOUDS.comment        = Enables volumetric 3D cubic clouds inspired by Complementary Reimagined
+option.CLOUD_ALTITUDE                   = Cloud Altitude
+option.CLOUD_ALTITUDE.comment           = Height of the cloud layer in blocks
+suffix.CLOUD_ALTITUDE                   = m
+option.CLOUD_THICKNESS                  = Cloud Thickness
+option.CLOUD_THICKNESS.comment          = Vertical thickness of the cloud layer
+option.CLOUD_ROUNDNESS                  = Cloud Roundness
+option.CLOUD_ROUNDNESS.comment          = Curvature and corner roundness of the box clouds
+option.CLOUD_SPEED                      = Cloud Speed
+option.CLOUD_SPEED.comment              = Wind speed multiplier for cloud movement
+option.CLOUD_SAMPLES                    = Cloud Quality (Samples)
+option.CLOUD_SAMPLES.comment            = Number of raymarching steps through the cloud layer. Lower values increase performance
+option.BLOCKY_CLOUDS                    = Vanilla Clouds
+option.BLOCKY_CLOUDS.comment            = Flat vanilla 2D clouds fallback
 
-option.CLOUDS_ALTOCUMULUS                       = Altocumulus Clouds
-option.CLOUDS_ALTOCUMULUS.comment               = Mid-altitude volumetric clouds made to resemble altocumulus clouds
-option.CLOUDS_ALTOCUMULUS_PRIMARY_STEPS_H       = Primary Steps - Horizon
-option.CLOUDS_ALTOCUMULUS_PRIMARY_STEPS_Z       =  Primary Steps - Zenith
-option.CLOUDS_ALTOCUMULUS_LIGHTING_STEPS        = Lighting Steps
-option.CLOUDS_ALTOCUMULUS_AMBIENT_STEPS         = Ambient Steps
-option.CLOUDS_ALTOCUMULUS_ALTITUDE              = Altitude
-suffix.CLOUDS_ALTOCUMULUS_ALTITUDE              = m
-option.CLOUDS_ALTOCUMULUS_THICKNESS             = Thickness
-option.CLOUDS_ALTOCUMULUS_DENSITY               = Density
-option.CLOUDS_ALTOCUMULUS_COVERAGE              = Coverage
-option.CLOUDS_ALTOCUMULUS_SIZE                  = Size
-option.CLOUDS_ALTOCUMULUS_DETAIL_STRENGTH       = Detail Strength
-option.CLOUDS_ALTOCUMULUS_WIND_SPEED            = Wind Speed
-suffix.CLOUDS_ALTOCUMULUS_WIND_SPEED            = m/s
-option.CLOUDS_ALTOCUMULUS_WIND_ANGLE            = Wind Angle
-suffix.CLOUDS_ALTOCUMULUS_WIND_ANGLE            = °
 
-option.CLOUDS_CUMULUS_CONGESTUS                       = Cumulus Congestus Clouds
-option.CLOUDS_CUMULUS_CONGESTUS.comment               = Massive, distant volumetric clouds
-option.CLOUDS_CUMULUS_CONGESTUS_PRIMARY_STEPS_H       = Primary Steps - Horizon
-option.CLOUDS_CUMULUS_CONGESTUS_PRIMARY_STEPS_Z       = Primary Steps - Zenith
-option.CLOUDS_CUMULUS_CONGESTUS_LIGHTING_STEPS        = Lighting Steps
-option.CLOUDS_CUMULUS_CONGESTUS_AMBIENT_STEPS         = Ambient Steps
-option.CLOUDS_CUMULUS_CONGESTUS_ALTITUDE              = Altitude
-suffix.CLOUDS_CUMULUS_CONGESTUS_ALTITUDE              = m
-option.CLOUDS_CUMULUS_CONGESTUS_THICKNESS             = Thickness
-option.CLOUDS_CUMULUS_CONGESTUS_DENSITY               = Density
-option.CLOUDS_CUMULUS_CONGESTUS_COVERAGE              = Coverage
-option.CLOUDS_CUMULUS_CONGESTUS_SIZE                  = Size
-option.CLOUDS_CUMULUS_CONGESTUS_DETAIL_STRENGTH       = Detail Strength
-option.CLOUDS_CUMULUS_CONGESTUS_WIND_SPEED            = Wind Speed
-suffix.CLOUDS_CUMULUS_CONGESTUS_WIND_SPEED            = m/s
-option.CLOUDS_CUMULUS_CONGESTUS_WIND_ANGLE            = Wind Angle
-suffix.CLOUDS_CUMULUS_CONGESTUS_WIND_ANGLE            = °
 
-option.CLOUDS_NOCTILUCENT               = Noctilucent Clouds
 
-option.BLOCKY_CLOUDS                    = Blocky Clouds
-option.BLOCKY_CLOUDS.comment            = Vanilla-styled volumetric clouds. Enabling this option disables all other cloud types
-option.BLOCKY_CLOUDS_LAYER_2            = Second Layer
-option.BLOCKY_CLOUDS_LAYER_2.comment    = A second layer of Minecrafty volumetric clouds! Beware that enabling this option doubles the performance impact of the clouds
-option.BLOCKY_CLOUDS_THICKNESS          = Tallness
-option.BLOCKY_CLOUDS_THICKNESS.comment  = Adjust the thickness of the clouds
-option.BLOCKY_CLOUDS_ALTITUDE           = Altitude
-option.BLOCKY_CLOUDS_ALTITUDE.comment   = Adjust the height of the clouds
-option.BLOCKY_CLOUDS_ALTITUDE_2         = Second Layer Altitude
-option.BLOCKY_CLOUDS_ALTITUDE_2.comment = Adjust the height of the second layer of clouds
-option.BLOCKY_CLOUDS_ROUNDNESS          = Roundness
-option.BLOCKY_CLOUDS_ROUNDNESS.comment  = Cloud edge roundness
-option.BLOCKY_CLOUDS_SHARPNESS          = Sharpness
-option.BLOCKY_CLOUDS_SHARPNESS.comment  = Cloud edge sharpness
-
-option.CLOUDS_TEMPORAL_UPSCALING       = Temporal Upscaling
-option.CLOUDS_AERIAL_PERSPECTIVE_BOOST = Aerial Perspective Boost
-option.CLOUDS_SCALE                    = Scale
-option.CLOUDS_SCALE.comment            = Applied as a scale factor to all clouds, to bring the clouds from a realistic size and altitude to an altitude that is accessible during gameplay. If this value is 1.0, clouds are positioned realistically, with the first layer 800 blocks up by default. If this value is higher, then clouds will appear smaller and form closer to the ground. This also affects the size of cloud shadows
-suffix.CLOUDS_SCALE                    = ×
-value.CLOUDS_TEMPORAL_UPSCALING.1      = Off
-value.CLOUDS_TEMPORAL_UPSCALING.2      = 4×
-value.CLOUDS_TEMPORAL_UPSCALING.3      = 9×
-value.CLOUDS_TEMPORAL_UPSCALING.4      = 16×
-
-option.CLOUDS_CIRRUS                       = Cirrus/Cirrocumulus Clouds
-option.CLOUDS_CIRRUS.comment               = Planar cirrus and cirrocumulus clouds
-option.CLOUDS_CIRRUS_LIGHTING_STEPS        = Lighting Steps
-option.CLOUDS_CIRRUS_AMBIENT_STEPS         = Ambient Steps
-option.CLOUDS_CIRRUS_ALTITUDE              = Altitude
-suffix.CLOUDS_CIRRUS_ALTITUDE              = m
-option.CLOUDS_CIRRUS_THICKNESS             = Thickness
-option.CLOUDS_CIRRUS_DENSITY               = Cirrus Density
-option.CLOUDS_CIRRUS_COVERAGE              = Cirrus Coverage
-option.CLOUDS_CIRRUS_SIZE                  = Cirrus Size
-option.CLOUDS_CIRRUS_DETAIL_STRENGTH       = Cirrus Detail Strength
-option.CLOUDS_CIRRUS_CURL_STRENGTH         = Cirrus Curl Strength
-option.CLOUDS_CIRRUS_WIND_SPEED            = Wind Speed
-suffix.CLOUDS_CIRRUS_WIND_SPEED            = m/s
-option.CLOUDS_CIRRUS_WIND_ANGLE            = Wind Angle
-suffix.CLOUDS_CIRRUS_WIND_ANGLE            = °
-option.CLOUDS_CIRROCUMULUS_DENSITY         = Cirrocumulus Density
-option.CLOUDS_CIRROCUMULUS_COVERAGE        = Cirrocumulus Coverage
-option.CLOUDS_CIRROCUMULUS_SIZE            = Cirrocumulus Size
-option.CLOUDS_CIRROCUMULUS_DETAIL_STRENGTH = Cirrocumulus Detail Strength
-option.CLOUDS_CIRROCUMULUS_CURL_STRENGTH   = Cirrocumulus Curl Strength
-
-option.CLOUDS_NOCTILUCENT_INTENSITY    = Intensity
-option.CLOUDS_NOCTILUCENT_RARITY       = Rarity
 
 option.AURORA_NORMAL                   = Aurora in Any Biome
 option.AURORA_SNOW                     = Aurora in Snow Biome
@@ -564,20 +497,20 @@ value.WATER_TEXTURE.WATER_TEXTURE_HIGHLIGHT             = Highlights
 value.WATER_TEXTURE.WATER_TEXTURE_VANILLA               = Vanilla
 value.WATER_TEXTURE.WATER_TEXTURE_HIGHLIGHT_UNDERGROUND = Highlights (Underground only)
 
-option.WATER_WAVES                     = Enabled
-option.WATER_WAVE_ITERATIONS           = Iterations
-option.WATER_WAVE_STRENGTH             = Intensity
-option.WATER_WAVE_FREQUENCY            = Frequency
-option.WATER_WAVE_SPEED_STILL          = Speed (Still)
-option.WATER_WAVE_SPEED_FLOWING        = Speed (Flowing)
-option.WATER_WAVE_PERSISTENCE          = Persistence
-option.WATER_WAVE_LACUNARITY           = Lacunarity
-option.WATER_PARALLAX                  = Water Parallax
-option.WATER_PARALLAX.comment          = Makes water waves appear 3D
-option.WATER_DISPLACEMENT              = Water Displacement
-option.WATER_DISPLACEMENT.comment      = Similar to how waving leaves work, it makes the water geometry itself wave slightly, so the shore line appears less flat
-option.WATER_WAVES_HEIGHT_VARIATION           = Local Height Variation 
-option.WATER_WAVES_HEIGHT_VARIATION.comment   = The height of water waves varies in space
+option.WATER_REFRACTION                 = Water Refraction
+option.WATER_REFRACTION.comment         = Refraction of submerged terrain and caustics through water
+option.WATER_CAUSTICS                   = Water Caustics
+option.WATER_CAUSTICS.comment           = Sunlight caustics projected onto underwater surfaces
+option.WATER_CAUSTICS_INTENSITY         = Caustics Intensity
+option.WATER_CAUSTICS_INTENSITY.comment = Brightness of underwater caustics
+option.WATER_PARALLAX                   = Water Parallax
+option.WATER_PARALLAX.comment          = Simulates 3D waves depth on water surface
+option.WATER_FOAM                       = Water Foam
+option.WATER_FOAM.comment               = Foam along shores and block boundaries
+option.WATER_BUMPINESS                  = Wave Bumpiness
+option.WATER_BUMPINESS.comment          = Normal intensity and height of water ripples
+option.WATER_SPEED_MULT                 = Wave Speed
+option.WATER_SPEED_MULT.comment         = Speed of water flow and wave animation
 
 option.WATER_ABSORPTION_R              = Red Absorption
 option.WATER_ABSORPTION_G              = Green Absorption

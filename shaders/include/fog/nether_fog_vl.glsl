@@ -14,8 +14,18 @@
 #include "/include/utility/fast_math.glsl"
 #include "/include/utility/phase_functions.glsl"
 
+#ifndef NETHER_SMOKE_STEPS
+#define NETHER_SMOKE_STEPS 18
+#endif
+#ifndef NETHER_SMOKE_STRENGTH
+#define NETHER_SMOKE_STRENGTH 1.00
+#endif
+#ifndef NETHER_SMOKE_SPEED
+#define NETHER_SMOKE_SPEED 1.00
+#endif
+
 float get_nether_smoke_sample(vec3 fog_pos) {
-    float t = frameTimeCounter;
+    float t = frameTimeCounter * NETHER_SMOKE_SPEED;
 
     fog_pos.y -= t * 2.0;
     fog_pos.x += cos(fog_pos.y * 0.09 + fog_pos.z * 0.007 + t * 0.13) * 6.0;
@@ -26,7 +36,7 @@ float get_nether_smoke_sample(vec3 fog_pos) {
     float n1 = texture(noisetex, fog_pos.xz * 0.0045 + (floor(y_idx) + 1.0) * 0.137).r;
     float smoke = mix(n0, n1, smoothstep(0.0, 1.0, fract(y_idx)));
     smoke = max(smoke - 0.475, 0.0);
-    return smoke * smoke * 10.0;
+    return smoke * smoke * 10.0 * NETHER_SMOKE_STRENGTH;
 }
 
 mat2x3 raymarch_nether_fog(
@@ -35,8 +45,6 @@ mat2x3 raymarch_nether_fog(
     bool sky,
     float dither
 ) {
-    const uint min_step_count = 14;
-    const uint max_step_count = 24;
     const float max_vl_distance = 160.0;
 
     vec3 world_dir = world_end_pos - world_start_pos;
@@ -48,8 +56,10 @@ mat2x3 raymarch_nether_fog(
         return mat2x3(vec3(0.0), vec3(1.0));
     }
 
-    uint step_count = uint(float(min_step_count) + 0.06 * ray_length);
-    step_count = min(step_count, max_step_count);
+    uint max_steps = uint(NETHER_SMOKE_STEPS);
+    uint min_steps = uint(max(6.0, float(NETHER_SMOKE_STEPS) * 0.6));
+    uint step_count = uint(float(min_steps) + 0.06 * ray_length);
+    step_count = min(step_count, max_steps);
 
     float step_length = ray_length * rcp(float(step_count));
     vec3 world_step = world_dir * step_length;

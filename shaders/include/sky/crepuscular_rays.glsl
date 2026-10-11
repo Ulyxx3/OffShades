@@ -13,7 +13,7 @@ vec4 draw_crepuscular_rays(
 ) {
     const uint step_count_horizon = CREPUSCULAR_RAYS_STEPS_HORIZON;
     const uint step_count_zenith = CREPUSCULAR_RAYS_STEPS_ZENITH;
-    const float max_ray_length = 4096.0 / (CLOUDS_SCALE / 10.0);
+    const float max_ray_length = 2048.0;
 #ifdef SKY_GROUND
     const float volume_inner_radius = planet_radius;
 #else
@@ -24,8 +24,7 @@ vec4 draw_crepuscular_rays(
         clouds_cumulus_radius + clouds_cumulus_thickness * 0.5;
     vec3 extinction_coeff = 2.0 *
         dampen(clouds_params.crepuscular_rays_amount) *
-        (50.0 * air_rayleigh_coefficient + 400.0 * air_mie_coefficient) *
-        (CLOUDS_SCALE / 10.0);
+        (50.0 * air_rayleigh_coefficient + 400.0 * air_mie_coefficient);
 
     const float underground_light_fade_distance = 100.0;
 
@@ -36,8 +35,8 @@ vec4 draw_crepuscular_rays(
     );
 
     // Calculate ray start and ray end
-
-    float r = planet_radius + eyeAltitude * CLOUDS_SCALE;
+    const float cloud_scale_factor = 10.0;
+    float r = planet_radius + eyeAltitude * cloud_scale_factor;
     vec2 dists =
         intersect_spherical_shell(
             ray_direction_world.y,
@@ -45,7 +44,7 @@ vec4 draw_crepuscular_rays(
             volume_inner_radius,
             volume_outer_radius
         ) *
-        rcp(CLOUDS_SCALE);
+        rcp(cloud_scale_factor);
     bool planet_intersected =
         intersect_sphere(ray_direction_world.y, r, min(r - 10.0, planet_radius))
             .y >= 0.0;
@@ -122,16 +121,18 @@ vec4 draw_crepuscular_rays(
 
     float LoV = dot(ray_direction_world, light_dir);
 
-    float forwards = henyey_greenstein_phase(LoV, 0.5);
+    // Focused forward lobe towards light source
+    float forwards = henyey_greenstein_phase(LoV, 0.72);
 
-    float phase = mix(0.5, 1.5, time_sunrise + time_sunset) *
-            forwards // forwards lobe (max'ing them is completely nonsensical
-                     // but it looks nice)
-        + 0.5 * henyey_greenstein_phase(LoV, -0.2); // backwards lobe
+    float phase = mix(0.5, 1.5, time_sunrise + time_sunset) * forwards
+        + 0.1 * henyey_greenstein_phase(LoV, -0.2);
+
+    // Smooth angular fade away from the sun so rays don't sprawl across the entire sky dome
+    float angular_fade = smoothstep(-0.2, 0.4, LoV);
 
     scattering *= scattering_coeff * step_transmitted_fraction * light_color *
         step_length * clouds_params.crepuscular_rays_amount;
-    scattering *= (6.0 * CREPUSCULAR_RAYS_INTENSITY) * phase;
+    scattering *= (3.5 * CREPUSCULAR_RAYS_INTENSITY) * phase * angular_fade;
     transmittance =
         mix(vec3(1.0), transmittance, clouds_params.crepuscular_rays_amount);
 

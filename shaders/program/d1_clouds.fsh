@@ -208,7 +208,7 @@ void main() {
     float dither = texelFetch(noisetex, ivec2(checkerboard_pos & 511), 0).b;
     dither = r1(frameCounter / checkerboard_area, dither);
 
-#ifndef BLOCKY_CLOUDS
+#if defined VOLUMETRIC_CLOUDS && !defined BLOCKY_CLOUDS
     CloudsResult result = draw_reimagined_box_clouds(
         cameraPosition,
         ray_dir,

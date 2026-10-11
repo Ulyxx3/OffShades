@@ -10,7 +10,7 @@ uniform sampler2D gaux4; // Complementary cloud-water atlas
 #endif
 
 const ivec2 cloud_shadow_res = ivec2(512);
-const float cloud_shadow_extent = 256.0 / (CLOUDS_SCALE / 10.0);
+const float cloud_shadow_extent = 256.0;
 #if !defined INCLUDE_SKY_CLOUDS_REIMAGINED_FUNCS
 #define INCLUDE_SKY_CLOUDS_REIMAGINED_FUNCS
 

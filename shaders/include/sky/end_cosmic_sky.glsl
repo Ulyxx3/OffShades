@@ -622,6 +622,9 @@ void draw_radiant_sun(inout vec3 sky, vec3 rayDir, vec3 sunDir) {
 // -----------------------------------------------------------------------------
 
 vec3 draw_end_cosmic_sky(vec3 ray_dir) {
+#ifndef END_COSMIC_SKY
+    return vec3(0.0);
+#else
     // 1. Pure inky black void (no green/purple fog)
     vec3 sky = vec3(0.0);
 
@@ -644,12 +647,15 @@ vec3 draw_end_cosmic_sky(vec3 ray_dir) {
 
     // 6. BACKGROUND: Solar System with 3D Perspective & Solar Eclipses / Transits
     // (Planets transit across the face of the Sun)
+#ifdef END_PLANETS
     draw_solar_system(sky, ray_dir, end_sun, saturnDir);
+#endif
 
     // 7. FOREGROUND: Saturn & Rings (100% opaque foreground, everything passes behind!)
     draw_saturn_and_rings(sky, ray_dir, end_sun, saturnDir);
 
     return sky;
+#endif
 }
 
 #endif // INCLUDE_SKY_END_COSMIC_SKY

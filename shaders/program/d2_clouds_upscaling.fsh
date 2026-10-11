@@ -381,6 +381,9 @@ void main() {
     clouds_history = max0(mix(current, history, history_weight));
     clouds_data.x =
         mix(apparent_distance, apparent_distance_history, history_weight);
+#ifndef CLOUDS_ACCUMULATION_LIMIT
+#define CLOUDS_ACCUMULATION_LIMIT 20
+#endif
     clouds_data.y = min(++pixel_age, CLOUDS_ACCUMULATION_LIMIT);
     clouds_data.z = mix(ambient_scattering, history_data.z, history_weight);
 }

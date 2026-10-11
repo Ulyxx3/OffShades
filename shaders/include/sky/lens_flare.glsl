@@ -81,6 +81,13 @@ vec3 calculate_lens_flare(
     sampler2D depthSampler,
     vec2 viewRes
 ) {
+#ifndef END_LENS_FLARE
+    return vec3(0.0);
+#endif
+#ifndef END_LENS_FLARE_INTENSITY
+#define END_LENS_FLARE_INTENSITY 1.00
+#endif
+
     // 1. Transform Sun to View Space
     vec3 sunView = mat3(modelView) * sunDir;
     if (sunView.z >= -0.01) return vec3(0.0); // Behind the camera plane
@@ -161,7 +168,7 @@ vec3 calculate_lens_flare(
     fl += flare_element(coord, sunPos,  1.20, 0.03, size * 0.10) * 0.20;
 
     lf += fl * 0.55;
-    lf *= sunVisibility * vec3(1.0, 0.95, 0.88) * 1.8;
+    lf *= sunVisibility * vec3(1.0, 0.95, 0.88) * (1.8 * END_LENS_FLARE_INTENSITY);
 
     return lf;
 }

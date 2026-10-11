@@ -41,9 +41,25 @@ vec3 modify_cloud_trace_pos(vec3 trace_pos, float altitude, float wind) {
 
 #endif
 
-const float cloudStretch = 4.2;
+#ifndef CLOUD_ALTITUDE
+#define CLOUD_ALTITUDE 160.0
+#endif
+#ifndef CLOUD_THICKNESS
+#define CLOUD_THICKNESS 4.2
+#endif
+#ifndef CLOUD_ROUNDNESS
+#define CLOUD_ROUNDNESS 0.125
+#endif
+#ifndef CLOUD_SPEED
+#define CLOUD_SPEED 1.00
+#endif
+#ifndef CLOUD_SAMPLES
+#define CLOUD_SAMPLES 18
+#endif
+
+const float cloudStretch = CLOUD_THICKNESS;
 const float cloudTallness = cloudStretch * 2.0;
-const float cloudRoundness = 0.125;
+const float cloudRoundness = CLOUD_ROUNDNESS;
 
 bool get_reimagined_cloud_noise(vec3 trace_pos, float altitude, float wind) {
     vec3 trace_pos_m = modify_cloud_trace_pos(trace_pos, altitude, wind);
@@ -72,7 +88,7 @@ CloudsResult draw_reimagined_box_clouds(
 ) {
     CloudsResult result = clouds_not_hit;
 
-    float cloud_altitude = defaultCloudAltitude;
+    float cloud_altitude = CLOUD_ALTITUDE;
     float lower_plane_alt  = cloud_altitude - cloudStretch;
     float higher_plane_alt = cloud_altitude + cloudStretch;
 
@@ -109,13 +125,13 @@ CloudsResult draw_reimagined_box_clouds(
         return clouds_not_hit;
     }
 
-    const int sample_count = 18;
+    const int sample_count = CLOUD_SAMPLES;
     float step_length = plane_diff / float(sample_count);
     vec3 ray_step = ray_dir * step_length;
 
     vec3 current_pos = camera_pos_world + ray_dir * min_dist + ray_step * dither;
 
-    float wind = frameTimeCounter * 0.015 * 1.2;
+    float wind = frameTimeCounter * 0.015 * 1.2 * CLOUD_SPEED;
 
     // Balanced lighting intensities matching Photon's HDR pipeline
     // Prevents extreme blow-out and blinding white clouds

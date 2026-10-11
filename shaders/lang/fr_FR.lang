@@ -1,8 +1,68 @@
-# End Cosmic Sky & Orbits (French)
-screen.end_sky                         = Ciel Cosmique & Orbites (End)
+# Profiles OffShades
+profile.potato                         = §aPotato (Très Basse Config)
+profile.potato.comment                 = Optimisé au maximum pour les cartes graphiques intégrées (iGPU) et PC modestes. Nuages allégés, brouillard volumétrique simplifié, pas d'ombres dynamiques avancées ni d'éclairage coloré.
+profile.medium                         = §aMedium (Default)
+profile.medium.comment                 = L'expérience par défaut recommandée. Très bon compromis performances / fidélité visuelle à 60+ FPS. Nuages 3D complets, reflets, eau réaliste, anneaux de l'End.
+profile.high                           = §6High (Haute Fidélité)
+profile.high.comment                   = Graphismes sublimés : Éclairage coloré activé (Colored Lights), brouillard volumétrique dans le Nether (Solas), rayons crépusculaires, ombres de contact SSRT et système solaire dans l'End.
+profile.extreme                        = §cExtreme (Cinématique)
+profile.extreme.comment                = Paramètres poussés à l'extrême pour les GPU haut de gamme. Ombres 4K, voxel 256, brouillards et nuages ultra-détaillés, POM et réflexions complètes.
+
+# Screens / Menus
+screen.world                           = Monde & Environnement
+screen.lighting                        = Éclairage & Ombres
+screen.sky_clouds                      = Ciel & Nuages
+screen.fog                             = Brouillard & Atmosphère
+screen.nether                          = Le Nether (Solas)
+screen.end                             = L'End (IterationT)
+screen.water                           = Eau & Océans
+screen.materials                       = Matériaux & Textures
+screen.post                            = Post-Traitement & Caméra
+screen.misc                            = Divers & Débogage
+
+# Nuages (Complementary Reimagined)
+option.VOLUMETRIC_CLOUDS                = Nuages Volumétriques
+option.VOLUMETRIC_CLOUDS.comment        = Active les nuages 3D en cubes volumétriques inspirés de Complementary Reimagined.
+option.CLOUD_ALTITUDE                   = Altitude des Nuages
+option.CLOUD_ALTITUDE.comment           = Hauteur de la couche nuageuse en blocs.
+suffix.CLOUD_ALTITUDE                   = m
+option.CLOUD_THICKNESS                  = Épaisseur des Nuages
+option.CLOUD_THICKNESS.comment          = Épaisseur verticale de la couche de nuages.
+option.CLOUD_ROUNDNESS                  = Arrondi des Nuages
+option.CLOUD_ROUNDNESS.comment          = Adoucit les coins des nuages cubiques.
+option.CLOUD_SPEED                      = Vitesse des Nuages
+option.CLOUD_SPEED.comment              = Vitesse de déplacement des nuages avec le vent.
+option.CLOUD_SAMPLES                    = Qualité des Nuages (Échantillons)
+option.CLOUD_SAMPLES.comment            = Nombre d'étapes de raymarching à travers les nuages. 8 pour Potato, 14 pour Medium, 18+ pour High/Extreme.
+option.BLOCKY_CLOUDS                    = Nuages Vanilla (2D)
+option.BLOCKY_CLOUDS.comment            = Rebascule vers des nuages plats de style vanilla.
+
+# Nether (Solas)
+option.NETHER_VL                        = Brouillard Volumétrique du Nether
+option.NETHER_VL.comment                = Fumée 3D convective et volumétrique dense inspirée de Solas Shaders. Désactiver augmente considérablement les FPS dans le Nether.
+option.NETHER_SMOKE_STEPS               = Échantillons Fumée Nether
+option.NETHER_SMOKE_STEPS.comment       = Précision du raymarching de la fumée du Nether.
+option.NETHER_SMOKE_STRENGTH            = Densité de la Fumée
+option.NETHER_SMOKE_STRENGTH.comment    = Épaisseur visuelle du brouillard volumétrique dans le Nether.
+option.NETHER_SMOKE_SPEED               = Vitesse de Convection
+option.NETHER_SMOKE_SPEED.comment       = Vitesse de montée et de turbulence des courants de fumée.
+option.LAVA_CURRENTS                    = Courants de Lave Procéduraux
+option.LAVA_CURRENTS.comment            = Vagues de flux et craquelures dynamiques sur la surface de la lave.
+
+# End (IterationT)
+option.END_COSMIC_SKY                   = Ciel Cosmique de l'End
+option.END_COSMIC_SKY.comment           = Ciel spatial d'IterationT avec étoile centrale aveuglante, planètes et nébuleuses.
+option.END_ORBITS                       = Anneaux et Orbites de Saturne
+option.END_ORBITS.comment               = Affiche l'anneau planétaire majestueux en rotation autour de la planète géante.
+option.END_PLANETS                      = Système Solaire & Transits
+option.END_PLANETS.comment              = Planètes en orbite créant des éclipses et transits devant le soleil de l'End.
+option.END_LENS_FLARE                   = Lens Flare Anamorphique
+option.END_LENS_FLARE.comment           = Reflets de lentille cinématographiques et rayonnements bleus de l'End.
+option.END_LENS_FLARE_INTENSITY         = Intensité du Lens Flare
+option.END_LENS_FLARE_INTENSITY.comment = Puissance lumineuse des reflets de lentille.
 
 option.SATURN_REVOLUTION_TIME          = Période d'orbite Saturne
-option.SATURN_REVOLUTION_TIME.comment  = Temps nécessaire pour accomplir une révolution complète (360°) dans les anneaux autour de Saturne. De 10 secondes (ultra rapide) à 1 heure (majestueux et lent).
+option.SATURN_REVOLUTION_TIME.comment  = Temps nécessaire pour accomplir une révolution complète (360°) dans les anneaux autour de Saturne.
 suffix.SATURN_REVOLUTION_TIME          = s
 value.SATURN_REVOLUTION_TIME.10        = 10s
 value.SATURN_REVOLUTION_TIME.15        = 15s
@@ -24,7 +84,7 @@ value.SATURN_REVOLUTION_TIME.2700      = 45 min
 value.SATURN_REVOLUTION_TIME.3600      = 1 heure
 
 option.PLANETS_REVOLUTION_TIME         = Période d'orbite Planètes
-option.PLANETS_REVOLUTION_TIME.comment = Temps de révolution de base des planètes autour du Soleil. Permet de contempler des éclipses et transits solaires toutes les 10 secondes ou étalés sur 1 heure.
+option.PLANETS_REVOLUTION_TIME.comment = Temps de révolution de base des planètes autour du Soleil de l'End.
 suffix.PLANETS_REVOLUTION_TIME         = s
 value.PLANETS_REVOLUTION_TIME.10       = 10s
 value.PLANETS_REVOLUTION_TIME.15       = 15s
@@ -44,3 +104,33 @@ value.PLANETS_REVOLUTION_TIME.1200     = 20 min
 value.PLANETS_REVOLUTION_TIME.1800     = 30 min
 value.PLANETS_REVOLUTION_TIME.2700     = 45 min
 value.PLANETS_REVOLUTION_TIME.3600     = 1 heure
+
+# Eau (Complementary Reimagined)
+option.WATER_REFRACTION                 = Réfraction de l'Eau
+option.WATER_REFRACTION.comment         = Déformation visuelle des fonds marins à travers les vagues.
+option.WATER_CAUSTICS                   = Caustiques Sous-Marines
+option.WATER_CAUSTICS.comment           = Motifs de lumière solaire ondulant sur le fond marin.
+option.WATER_CAUSTICS_INTENSITY         = Intensité des Caustiques
+option.WATER_CAUSTICS_INTENSITY.comment = Luminosité des rayons caustiques sous l'eau.
+option.WATER_PARALLAX                   = Parallaxe des Vagues
+option.WATER_PARALLAX.comment          = Simule un relief 3D réaliste à la surface de l'eau.
+option.WATER_FOAM                       = Écume des Vagues
+option.WATER_FOAM.comment               = Écume blanche stylisée le long des rivages et des blocs.
+option.WATER_BUMPINESS                  = Relief des Vagues
+option.WATER_BUMPINESS.comment          = Rugosité et hauteur des ondulations de la surface.
+option.WATER_SPEED_MULT                 = Vitesse du Courant
+option.WATER_SPEED_MULT.comment         = Vitesse d'écoulement et d'animation des vagues.
+
+# Éclairage & Ombres
+option.COLORED_LIGHTS                   = Éclairage Coloré (Colored Lights)
+option.COLORED_LIGHTS.comment           = Éclairage dynamique coloré par voxel basé sur la couleur des blocs émissifs (torches, lave, lanternes de l'âme).
+option.VOXEL_VOLUME_SIZE                = Taille du Volume Voxel
+option.VOXEL_VOLUME_SIZE.comment        = Résolution de la grille de voxels pour l'éclairage coloré. 128 recommandé.
+option.SHADOW_COLOR                     = Ombres Colorées
+option.SHADOW_COLOR.comment             = Ombres teintées à travers les vitraux et blocs translucides.
+option.SHADOW_VPS                       = Ombres à Pénombres Variables (VPS)
+option.SHADOW_VPS.comment               = Adoucit les ombres plus elles sont éloignées de l'objet qui les projette.
+option.SHADOW_SSRT                      = Ombres de Contact (SSRT)
+option.SHADOW_SSRT.comment              = Tranche d'ombre nette au niveau du contact entre les blocs et les surfaces.
+option.VL                               = Rayons Volumétriques (Overworld)
+option.VL.comment                       = Rayons de lumière céleste volumétriques traversant les arbres et les collines.

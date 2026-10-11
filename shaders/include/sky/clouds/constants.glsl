@@ -3,6 +3,25 @@
 
 #include "/include/sky/atmosphere.glsl"
 
+#ifndef CLOUDS_SCALE
+#define CLOUDS_SCALE 1.0
+#endif
+#ifndef CLOUDS_CUMULUS_ALTITUDE
+#define CLOUDS_CUMULUS_ALTITUDE 800.0
+#endif
+#ifndef CLOUDS_CUMULUS_THICKNESS
+#define CLOUDS_CUMULUS_THICKNESS 0.35
+#endif
+#ifndef CLOUDS_ALTOCUMULUS_ALTITUDE
+#define CLOUDS_ALTOCUMULUS_ALTITUDE 3000.0
+#endif
+#ifndef CLOUDS_ALTOCUMULUS_THICKNESS
+#define CLOUDS_ALTOCUMULUS_THICKNESS 0.35
+#endif
+#ifndef CLOUDS_CIRRUS_ALTITUDE
+#define CLOUDS_CIRRUS_ALTITUDE 6000.0
+#endif
+
 const float clouds_cumulus_radius = planet_radius + CLOUDS_CUMULUS_ALTITUDE;
 const float clouds_cumulus_thickness =
     CLOUDS_CUMULUS_ALTITUDE * CLOUDS_CUMULUS_THICKNESS;
