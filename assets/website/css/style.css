@@ -278,10 +278,14 @@ button {
   position: relative;
   z-index: 2;
   text-align: center;
-  max-width: 1100px;
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 .hero-title-stage {
@@ -289,16 +293,22 @@ button {
   margin-bottom: 1.5rem;
   user-select: none;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .hero-title {
   font-family: var(--font-title);
-  font-size: clamp(3.8rem, 11.5vw, 9.4rem);
+  font-size: clamp(2.8rem, 7.2vw, 6.6rem);
   font-weight: 900;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
   line-height: 1;
   text-transform: uppercase;
-  margin: 0;
+  margin: 0 auto;
+  text-align: center;
+  display: inline-block;
   color: rgba(255, 255, 255, 0.88);
   mix-blend-mode: overlay;
   text-shadow: 0 4px 25px rgba(255, 255, 255, 0.35);
