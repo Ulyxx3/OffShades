@@ -42,9 +42,13 @@ OffShades is developed from some of the code of the inspirations:
 2. Place the `OffShades` folder (or `.zip`) in your `.minecraft/shaderpacks/` directory
 3. In-game: `Options → Video Settings → Shader Packs → OffShades`
 
-## License
+## License & Credits
 
-OffShades is distributed under the **GNU General Public License v3.0 (GPL-3.0)**.
-See the [LICENSE](LICENSE) file for the complete terms.
+OffShades is a composite derivative shaderpack distributed under a **Custom Multi-License** respecting all upstream authors:
+- **[Photon Shaders](https://github.com/RRe36/PhotonShader)** — Copyright © 2021-2025 Benjamin Stott ("SixthSurge") (Photon Shaders License Agreement)
+- **[Complementary Reimagined](https://www.complementary.dev/)** — Copyright © EminGT (Complementary License Agreement 1.7)
+- **[Solas Shader](https://modrinth.com/shader/solas-shader)** — Copyright © Septonious (All Rights Reserved)
+- Original modifications and integrations by Ulyxx3.
 
-Copyright © Ulyxx3.
+Please see the [LICENSE](LICENSE) file for the complete terms and legal notices.
+
